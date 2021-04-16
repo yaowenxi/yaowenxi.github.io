@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="utf-8"?>
+<search>
+  <entry>
+    <title><![CDATA[es quick start]]></title>
+    <url>%2F2021%2F04%2F16%2Fes-quick-start%2F</url>
+    <content type="text"></content>
+  </entry>
+  <entry>
+    <title><![CDATA[Spring 笔记之装配]]></title>
+    <url>%2F2017%2F11%2F01%2FSpring%20%E7%AC%94%E8%AE%B0%E4%B9%8B%E8%A3%85%E9%85%8D%2F</url>
+    <content type="text"><![CDATA[概述​ 这几天断断续续的在看Spring实战，主要看了前两章的东西，特此记录一下。 依赖注入​ 作为Spring最为核心的概念，依赖注入(Dependency Injection,DI)这个名词既绕口，也没那么好理解。他其实是一种软件工程设计原则控制反转(Inversion of Control,IoC)的一种实现。 究其目的，是为了能够减少面向对象软件工程中多对象之间耦合度太高的问题。具体到Spring框架来说，在Spring的世界观里面，对象之间的创建与调用都应该由Spring的IoC容器来负责，而不应该由对象之间相互调用，这种设计思想，可以能够很好的减少对象之间的相互耦合。而在Spring中如何自动的创建对象实例bean呢，这种行为在Spring中的名词就是装配(Wiring)。随着框架的完善，今天的Spring主要以三种方式来完成对Java Bean的装配。 装配方式自动装配​ Spring发展到如今，自动化的程度很高，自动装配也是非常方便并且在Spring Boot框架中大量使用。在Spring实战这本书中,也属于重点介绍的技术，Spring技术主要通过两个角度来实现自动化的装配： 组件扫描(component scanning):Spring自动发现应用上下文中(ApplicationContext)所创建的bean 自动装配(autowiring): Spring自动的满足bean之间的相互依赖 ​ 举个例子可以很清楚的看见Spring是如何通过自动装配的方式来完成自动的装配。假设以Spring Boot框架为例，有一个Singer去演唱一首歌，那么当他需要唱歌时需要哪些东西呢，在Spring的自动装配中，比较简单。首先需要定义能够唱歌的灵魂歌手LeiJun： 1234567@Componentpublic class LeiJun implements Singer &#123; @Override public void sing() &#123; System.out.println("Are you ok?"); &#125;&#125; 光有人是不够的，如何能够唱歌呢，注入进来就好了! 12345678910@RunWith(SpringRunner.class)@ContextConfiguration(classes = DemoApplication.class)public class DemoApplicationTests &#123; @Autowired private LeiJun leiJun; @Test public void test()&#123; leiJun.sing(); &#125;&#125; 在Spring中，利用自动装配去使用一个对象就这么简单，依靠@Component注解与@Autowired注解就能够完成对一个对象的使用，但其实在这背后，Spring默默的为我们做了很多的事情。首先，当为一个对象定义为@Component注解时，相当于对Spring声明了这个类将会作为组件类，并且告知Spring要为这个类创建bean，当然，组件的扫描并不是直接启动的，需要通过对Spring的配置从而启动对所有@Component的注解的扫描，并创建相应的bean，以Spring Boot为例，在其启动时会有一个@SpringBootApplication注解，这其实是个多重注解的组合， 123456789101112@Target(ElementType.TYPE)@Retention(RetentionPolicy.RUNTIME)@Documented@Inherited@SpringBootConfiguration@EnableAutoConfiguration@ComponentScan(excludeFilters = &#123; @Filter(type = FilterType.CUSTOM, classes = TypeExcludeFilter.class), @Filter(type = FilterType.CUSTOM, classes = AutoConfigurationExcludeFilter.class) &#125;)public @interface SpringBootApplication &#123; ...&#125; 其中，ComponentScan的作用尤为重要，在项目启动的时候，该注解会去扫描根据配置好的Package下的类，在本例中，他就会将加载了@Component注解的LeiJun加载入Ioc容器中并自动为其创建一个bean，而如单元测试中例子所示，当在Spring框架中需要引用一个bean时，通过@Autowired将其从IoC容器中注入进来就可以使用了。 ​ 以上，就是通过自动装配的姿势，让LeiJun唱歌的过程。 JavaConfig装配并不是任何时候自动配置都是合适的场景，这种时候 ，总需要去执行Plan B，此时，可能就需要我们对JavaBean进行的显示的配置了，JavaConfig的装配方式比较特殊，因为他就是Java代码，就像程序中的其他代码一样，只不过不包含任何业务逻辑，显得比较独立。再以一位歌手为例，就能清楚JavaConfig的配置方式。首先，都需要定义一位歌手: 123456public class GongLinNa implements Singer&#123; @Override public void sing() &#123; System.out.println("法海你不懂爱"); &#125;&#125; 相比较上次而言，这位歌手并没有一个Component注解,这是因为她没有选择通过自动装配的方式注入进IoC容器的缘故，通过JavaConfig，可以达到同样的目的! 1234567@Configurationpublic class SingerConfig &#123; @Bean public Singer gongLinNa()&#123; return new GongLinNa(); &#125;&#125; 同样也可以唱歌: 12345678910@RunWith(SpringRunner.class)@ContextConfiguration(classes = DemoApplication.class)public class DemoApplicationTests &#123; @Autowired private Singer gongLinNa; @Test public void test002()&#123; gongLinNa.sing(); &#125;&#125; 如方式一相比，能够明显的观察出不同，少了一个@Component注解，多了一个SingerConifg类。这个类中，多了两个注解@Configuration和@Bean。其实从名字就能够看出，Configuration表明应用了这个注解的Java类就是一个Java配置类，而@Bean则表明了这个方法将为Spring返回一个Bean，通过这种方式，Spring同样能够将其注入进来，并在其他的地方注入使用。相比较与自动注入而言，这种要稍微繁琐一点。使用场景，以Spring Boot为例，Spring Boot 各种起步starter中的很多基础包都是以这种方式配置，并且通过EnableAutoConfiguration将符合条件的配置加载到容器中来并且使用。 XML方式xml方式的配置方式，在Spring中，有着悠久的历史。简而言之，类似与JavaConfig方式，只不过这种bean的方式并不是通过Java代码，而是xml的方式进行约定。由于其历史的悠久性，注定了其繁琐程度也要大大高于另外两种方式，在如今的项目工程中，实际使用的也并不多。通常情况下，自动装配和JavaConfig就已经足够使用了。 常用注解Spring并不会通过强制约定项目代码去实现一个Spring规范的接口或者集成Spring规范的类，通常来说，当需要使用起Spring的特性，注解是必不可少的，在进行依赖注入的使用过程中，以下的几个注解是我能够经常看到的。 @Component： 这个简单的注解通常注解在类上，表明这个类是Spring的一个组件，而Spring看到这样的类，当配置了自动扫描时，将会自动将其收集到容器中并为其创建bean。 @Service @Controller @Repository : 虽然Component注解非常好用，但在实际的应用过程中，这三个注解其实是更常用的。以@Service为例: 1234567@Target(&#123;ElementType.TYPE&#125;)@Retention(RetentionPolicy.RUNTIME)@Documented@Componentpublic @interface Service &#123; String value() default "";&#125; 可以发现，它上面也有一个@Component注解，为什么要使用他们而不是直接使用@Component呢，其实只是为了表意更清楚而已，Service表明这是一个Service层的对象，Controller表明这是一个控制层组件，而Repository则表明这是一个与数据访问相关的组件。 @ComponentScan: 自动扫描注解，这个注解通常配置在Spring应用启动时，当启动应用时，ComponentScan注解就可以去搜集所有已经声明了的组件并将它们组装入容器中。 @Autowired: 当Bean已经在容器时,一个Atuowired即可注入到当前类中并进行使用. @Configuration: 标注在类上,表明这是一个JavaConfiguration类. @Bean 标注于方法上面,表面将返回一个JavaBean.]]></content>
+      <categories>
+        <category>Java</category>
+      </categories>
+      <tags>
+        <tag>Spring</tag>
+        <tag>依赖注入</tag>
+        <tag>装配</tag>
+        <tag>注解</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[2017年的8月小结]]></title>
+    <url>%2F2017%2F08%2F31%2F2017%E5%B9%B4%E7%9A%848%E6%9C%88%E5%B0%8F%E7%BB%93%2F</url>
+    <content type="text"><![CDATA[毕业彻底的从学校走向社会，已经有两个月了。慢慢的，已经可以适应如今的工作节奏了。相较于学校中比较宽松的氛围，公司是另外一种Style。但也还好，push的并不是很紧，也是因为自己的任务并不是核心的原因吧，组内的压力还没有来到我的身上。越来越觉得，作为一名程序员，一定的文字输出能力也是很有必要的。在今后的时光里，也希望自己经常能够记录下自己成长的轨迹。 技术这两个月的时间，还没有接触到特别核心的任务，不过这些奇奇怪怪的小任务也让我对Java有了更多的了解。主要来说，对Log4j的日志分流，对在不同系统中读取网络设备IP地址，以及Gradle项目的构建过程以及Groovy的学习是我最近两个月所学习到的东西。组内大神的带领下，学习这些东西的过程中感觉是有趣的，有时候，身处其中的解决一个问题又出现另一个问题的感觉也会让我产生出一定的挫败感，但更多时候，搞清楚一个东西也是蛮有意思的事情。不过这么多时间来，我都没有将这些知识点总结过，今天看20天前写的代码时，已经有点生疏了。另外，也一直没有读一些比较好的书籍，这一点希望后面的时间中要去改进。 生活完全工作后的周末与曾经读研的时候大不相同。其实，读研也无所谓什么假期的，而现在终于有一种可以free的感觉。我可以出去瞅瞅逛逛玩一玩了，哈哈。冰与火之歌的第七季正好也是在这段时间内追完了。相较于去年时的心境，感觉还是好很多的。另外，终于可以组装一个心心念念的台式机了。由于矿工们的爆炒，作为一名穷人只好默默的靠着CPU上的集显苟活，只希望矿难早日来到，我好收矿渣 = =。 读书本月无读书…..感觉完全聊不下去了。希望，只是希望，下次更新总结的时候，有东西可写。 转眼又是新的一月，fighting！]]></content>
+  </entry>
+  <entry>
+    <title><![CDATA[hexo更换电脑重新部署]]></title>
+    <url>%2F2016%2F11%2F07%2Fhexo%E6%9B%B4%E6%8D%A2%E7%94%B5%E8%84%91%E9%87%8D%E6%96%B0%E9%83%A8%E7%BD%B2%2F</url>
+    <content type="text"><![CDATA[电脑系统重装之后，之前的配置都丢失了，重新部署是个坑，我给重新踩一下，写下这个文档，免得下次再次踩坑。 更换淘宝源在重新安装hexo的时候，Nodejs本身的速度还好，Windows下直接在官网下载安装就可以了，不过hexo本身可能是因为墙的原因，速度真的是太卡了，还常常安装失败。后来改用了淘宝的源，速度真的是要好了很多。改成淘宝源很简单:1npm install -g cnpm --registry=https://registry.npm.taobao.org` 等这个安装完后，将涉及到npm install的都改成cnpm install就可以了。 安装hexo和npm包两条命令就可以。安装hexo:1cnpm install hexo-cli -g cd进入blog文件夹后,安装npm包:1cnpm install 使用体验而言，比国外的速度实在要快太多。 利用git pages同步服务项目的master我是放在coding.net上面，同时将hexo的_config.yml中的deploy字段设置成coding-pages,如下。1234type: gitrepository: git@git.coding.net:yaowenxi/yaowenxi.gitbranch: coding-pages 在部署新的文章的时候，我只需要先将master的分支用git add git commit git push推送上去，然后再将pages页面deploy一下就行了。deploy命令:1hexo g -d 至此，一遍文章的部署就算搞定了。]]></content>
+      <categories>
+        <category>hexo</category>
+      </categories>
+      <tags>
+        <tag>hexo</tag>
+        <tag>部署</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[几种常用的排序算法总结]]></title>
+    <url>%2F2016%2F10%2F02%2F%E5%87%A0%E7%A7%8D%E5%B8%B8%E7%94%A8%E7%9A%84%E6%8E%92%E5%BA%8F%E7%AE%97%E6%B3%95%E6%80%BB%E7%BB%93%2F</url>
+    <content type="text"><![CDATA[简述排序算法在各种各样的题中出现的蛮多的，不管是算法的编程题还是问时间复杂度之类的题目，虽然之前考研的时候都考过，不过那个时候自己也没有动手去实践，这么多排序算法放在一起，我也经常弄混，前两天就狠下心决定把所有的排序算法统统都实践一遍，并且记录下来，其中时间复杂度，空间复杂度和稳定性的分析我都放到注释中去了，希望以后再碰到的时候能够不要再忘记了。 插入排序插入排序是一种简单直观的排序算法，其基本思想在于每次将一个待排序的记录，按其关键字大小插入到前面已经排好序的子序列中，直到全部记录插入完成。 直接插入排序直接插入排序是一种最简单也是最直观的插入算法。其具体过程如下：假设在排序过程中，待排序表L[1…n]中，前i-1个元素都是已经排好序的时候，将第i个元素插入其中，这样循环下来，就可以让整个排序表有序。其中插入的操作可以如下: 查找出L(i)在L[1…i-1]中的插入位置k。 将L[k…i-1]中所有元素全部后移一个位置。 将L(i)复制到L(k)。 1234567891011121314151617181920/*** 算法名称:直接插入排序* 空间效率:仅使用了常数个辅助单元，因而空间复杂度为O(1)* 时间效率:在最好情况下，如果整个序列都已经是有序的，此时每插入一个都只需要比较一次而* 不用移动元素，因而时间复杂度为O(n)。而在平均情况下，时间复杂度则为O(n^2)。* 稳定性: 由于每次插入元素时总是从后向前先比较再移动，所以并不会出现相对位置发生变化* 的情况，也就是意味着直接插入排序是一个稳定的排序算法。*/public static void insertSort(int[] array)&#123; int temp,j; for(int i=1;i&lt;array.length;i++)&#123; if(array[i]&lt;array[i-1])&#123; temp=array[i]; for (j=i-1;j&gt;=0&amp;&amp;temp&lt;array[j];j--)&#123; array[j+1]=array[j]; &#125; array[j+1]=temp; &#125; &#125;&#125; 希尔排序希尔排序，又称为缩小增量排序。希尔排序的基本思想是：先将待排序表分割成若干个中间相差d的子表，然后分别进行插入排序，而当整个表中的元素已经基本有序的时候，再对全体记录进行一次直接插入排序。希尔排序的算法如下:123456789101112131415161718192021222324/*** 排序名称:希尔排序* 空间效率:仅使用了常数个辅助单元，因而空间复杂度为O(1)* 时间效率:希尔排序的时间复杂度依赖于增量序列函数，其时间复杂度是并不一定的，当* 数组长度n在一定范围内的时候，时间复杂度约为O(n^1.3)，而最坏情况下则会达到O(n^2)* 稳定性: 当相同关键字的记录被划分到不同的子表的时候，可能会改变它们之间的相对次序，所* 以希尔排序是个不稳定的排序算法*/public static void shellSort(int[] array)&#123; int i,j,k,temp; for (int gap=array.length/2;gap&gt;0;gap/=2)&#123; for (i=0;i&lt;gap;i++)&#123; for (j=i+gap;j&lt;array.length;j+=gap)&#123; if (array[j]&lt;array[j-gap])&#123; temp=array[j]; for (k=j-gap;k&gt;=0&amp;&amp;temp&lt;array[k];k-=gap)&#123; array[k+gap]=array[k]; &#125; array[k+gap]=temp; &#125; &#125; &#125; &#125;&#125; 交换排序所谓的交换，就是根据序列中两个元素关键字的比较结果来兑换这两个记录在序列中的位置。基于交换的排序算法有很多，常用的主要是冒泡排序和快速排序。其中冒泡排序比较简单，而快速排序则使用的非常的广泛，因为它在大部分的应用场景下效果都是很好的。 冒泡排序冒泡排序算法的基本思想是：假设待排序表长为n，从后往前两两比较相邻元素的值，如果是逆序，就可以将他们进行交换，这样序列比较完一次就可以称之为一趟冒泡，结果将最小的元素交换到待排序列的第一个位置，而在下一趟排序的时候，前一趟已经确定的元素就不会继续进行排序。这样通过n-1趟就能将整个序列变得有序。123456789101112131415161718/*** 排序名称:冒泡排序* 空间效率:仅使用了常数个辅助单元，因而空间复杂度为O(1)* 时间效率: 当进行n-1趟比较，并且每一趟都进行i次比较的时候，时间复杂度为O(n^2)* 稳定性: 由于当两个元素相等时并不发生交换，所以冒泡排序是一个稳定的排序算法。*/public static void bubbleSort(int[] array)&#123; int temp; for (int i=0;i&lt;array.length-1;i++)&#123; for (int j=array.length-1;j&gt;i;j--)&#123; if(array[j]&lt;array[j-1])&#123; temp=array[j]; array[j]=array[j-1]; array[j-1]=temp; &#125; &#125; &#125;&#125; 快速排序快速排序是对冒泡排序的一种改进。其基本思想是基于分治法的。每次在待排序列表中找出一个元素pivot作为基准，通过一趟排序将待排序表划分为两个独立的部分，其中一边是全大于pivot的元素，而另一边则是全小于pivot的元素，这样递归的做下去，就可以使所有元素都放到其最终位置。具体的代码如下：123456789101112131415161718192021222324252627282930313233343536/*** 排序名称:快速排序* 空间效率:快速排序是递归的，需要借助一个递归的栈来保存每一层递归的信息。* 其容量应该与递归调用的最大深度是一致的。在最坏情况下，栈的深度是O(n)，而在平均情况下* 栈的深度为O(logN)* 时间效率: 快速排序的运行时间与划分是否对称有关系，在通常情况下，时间复杂* 度为O(nlogN)，而在最坏情况下则会达到O(n^2)* 稳定性: 划分算法中，若右端区间存在两个关键字相同，切均小于基准值的记录，则在* 交换到左端区间后，它们的相对位置会发生变化，也就是说快速排序是一个不稳定的排序算法。*/public static void quickSort(int[] array,int start,int end)&#123; if(start&lt;end)&#123; int pivotpos=partition(array,start,end); quickSort(array,start,pivotpos-1); quickSort(array,pivotpos+1,end); &#125;&#125;/*** 这是快速排序的辅助函数，用来找出每一次划分的位置，并且确定该划分元素在待排序列中的最终位置*/public static int partition(int[] array,int start,int end)&#123; int povit=array[start]; while (start&lt;end)&#123; while (start&lt;end&amp;&amp;array[end]&gt;=povit) &#123; --end; &#125; array[start]=array[end]; while (start&lt;end&amp;&amp;array[start]&lt;=povit)&#123; ++start; &#125; array[end]=array[start]; &#125; array[start]=povit; return start;&#125; 选择排序选择排序的基本思想是：每一趟(例如第i趟)在后面n-i+1个待排序元素中选择关键字最小的元素，作为有序子序列的第i个元素，直到第n-1趟做完，待排序元素只剩下1个就不用再选了。 简单选择排序简单选择排序的基本思想是：假设排序表为L[1…n],第i趟排序即从L[i…n]中选择关键字最小的元素与L(i)交换，每一趟排序可以确定一个元素的位置，这样经过n-1趟排序就可以使整个排序表有序。123456789101112131415161718192021/*** 排序名称:简单选择排序* 空间效率:仅使用了常数个辅助单元，因而空间复杂度为O(1)* 时间效率: 简单选择排序中过程中，元素移动的操作次数很少，最好的情况下移动0次* 此时对应的表已经有序；但元素间比较的次数与序列的初始状态无关，时间复杂度始终是O(n^2)* 稳定性: 在第i趟找到最小元素后，和第i个元素交换，可能会导致第i个元素与其含有相同* 关键字元素的相对位置发生改变。简单选择是一个不稳定的排序算法。*/public static void selectSort(int[] array)&#123; for (int i=0;i&lt;array.length-1;i++)&#123; int min=i; for (int j=i+1;j&lt;array.length;j++)&#123; if (array[j]&lt;array[i]) min=j; &#125; if (min!=i)&#123; int temp=array[min]; array[min]=array[i]; array[i]=temp; &#125; &#125; &#125; 堆排序堆排序是一种树形选择排序算法，它的特点是:在排序过程中将待排序表看成是一个二叉树的顺序存储结构，利用完全二叉树中双亲节点和孩子节点之间的内在关系，在当前的无序区中选择关键字最大（或者最小）的元素。1234567891011121314151617181920212223242526272829303132333435363738394041424344454647484950515253545556575859606162/*** 堆排序*/private static void heapSort(int[] array) &#123; buildMaxHeap(array,array.length); // 逐步将每个最大值的根节点与末尾元素交换，并且再调整二叉树，使其成为大顶堆 for (int i = array.length - 1; i &gt; 0; i--) &#123; swap(array, 0, i); // 将堆顶记录和当前未经排序子序列的最后一个记录交换 heapAdjust(array, 0, i); // 交换之后，需要重新检查堆是否符合大顶堆，不符合则要调整 &#125;&#125;/*** 初始化一个大顶堆* @param array* @param len*/public static void buildMaxHeap(int[] array,int len)&#123; for (int i=len/2;i&gt;=0;i--)&#123; heapAdjust(array,i,len); &#125;&#125;/*** 构建堆的过程* @param arr 需要排序的数组* @param i 需要构建堆的根节点的序号* @param n 数组的长度*/private static void heapAdjust(int[] arr, int i, int n) &#123; int child; int father; for (father = arr[i]; leftChild(i) &lt; n; i = child) &#123; child = leftChild(i); // 如果左子树小于右子树，则需要比较右子树和父节点 if (child != n - 1 &amp;&amp; arr[child] &lt; arr[child + 1]) &#123; child++; // 序号增1，指向右子树 &#125; // 如果父节点小于孩子结点，则需要交换 if (father &lt; arr[child]) &#123; arr[i] = arr[child]; &#125; else &#123; break; // 大顶堆结构未被破坏，不需要调整 &#125; &#125; arr[i] = father;&#125;// 获取到左孩子结点private static int leftChild(int i) &#123; return 2 * i + 1;&#125;// 交换元素位置private static void swap(int[] arr, int index1, int index2) &#123; int tmp = arr[index1]; arr[index1] = arr[index2]; arr[index2] = tmp;&#125; 归并排序归并排序与上述的交换，选择等排序的思想是不一样的。归并的意义是将两个或者两个以上的有序表组成一个新的有序表。通过递归的方法来完成整个排序的操作。1234567891011121314151617181920212223242526272829303132333435/*** 排序名称:归并排序* 空间效率:merge操作中，辅助空间要占用n个单元，空间复杂度为O(n)* 时间效率: 每一趟归并的时间复杂度为O(n),算法的时间复杂度为O(n*logN)* 稳定性: 由于merge操作不会改变相同关键字记录的相对次序，所以二路归并排序算法是一个* 稳定的算法*/public static void mergeSort(int[] array,int start,int end)&#123; if (start&lt;end)&#123; int mid=(start+end)/2; mergeSort(array,start,mid); mergeSort(array,mid+1,end); merge(array,start,mid,end); &#125;&#125;/*** 归并排序的辅助函数，作用是将两个有序的数组合并到同一个数组中去*/public static void merge(int[] array,int start,int mid,int end)&#123; int i,j,k; int[] tempArray=new int[array.length]; for (i=0;i&lt;array.length;i++)&#123; tempArray[i]=array[i]; &#125; for (i=start,j=mid+1,k=start;i&lt;=mid&amp;&amp;j&lt;=end;k++)&#123; if(tempArray[i]&lt;tempArray[j])&#123; array[k]=tempArray[i++]; &#125;else &#123; array[k]=tempArray[j++]; &#125; &#125; while (i&lt;=mid) array[k++]=tempArray[i++]; while (j&lt;=end) array[k++]=tempArray[j++];&#125;]]></content>
+      <categories>
+        <category>数据结构</category>
+        <category>算法</category>
+      </categories>
+      <tags>
+        <tag>数据结构</tag>
+        <tag>算法</tag>
+        <tag>排序</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[Java实现图的存储与基本操作]]></title>
+    <url>%2F2016%2F09%2F26%2FJava%E5%AE%9E%E7%8E%B0%E5%9B%BE%E7%9A%84%E5%AD%98%E5%82%A8%E4%B8%8E%E5%9F%BA%E6%9C%AC%E6%93%8D%E4%BD%9C%2F</url>
+    <content type="text"><![CDATA[概述今天花了点时间，将数据结构中比较经典的图的基本应用用Java实现了一下，记录一下。因为觉得图的数据结构是比较经典的。其实，主要是好像面试似乎会弄得很多。准备一点也好。数据结构里面，图的存储方式其实是有很多的。在以前考408的时候，复习了的就有四种，分别是邻接矩阵法，邻接表法，十字链表法和邻接多重法。不过今天只准备实现两种最常用的邻接矩阵和邻接表法。因为这两种是用的最频繁的，难度其实也比另外两种小。 邻接矩阵所谓的邻接矩阵存储，就是用一个一维数组来存储图中顶点的信息，而用一个二维数据存储图中边的信息(也就是各个顶点之间的邻接关系)，存储顶点之间邻接关系的二维数组称之为邻接矩阵。以下用一个无向图的邻接矩阵作为示例: 很明显的能看出来该无向图的邻接矩阵是一个对称矩阵。其实这也是很好理解的。从V0到V1有距离必然意味着V1到V0是有距离的。 而有向图的邻接矩阵可看如下图所示: 可以看出来有向图其实并不是对称的。另外如果这个有向图是有权值的话，矩阵中的数字1也是可以替换成其他的数字的。 我写了一个AMGraph的实现类，主要是邻接矩阵的生成初始化以及简单的插入删除边和节点的操作。 1234567891011121314151617181920212223242526272829303132333435363738import java.util.*;/** * @author WorthyYao * @date 2016/9/26 */public class AMGraph &#123; private ArrayList vertexList; private int[][] edges; private int numsEdge; //初始化邻接矩阵 public AMGraph(int n)&#123; edges=new int[n][n]; vertexList=new ArrayList(n); numsEdge=0; &#125; //返回图中点的数目 public int getNumOfVertix()&#123; return vertexList.size(); &#125; //返回图中边的条数 public int getNumOfEdge()&#123; return numsEdge; &#125; //增加图中的点 public void insertVertex(Object vertex) &#123; vertexList.add(vertexList.size(),vertex); &#125; //在图中插入一条边 public void insertEdge(int v1,int v2,int weight)&#123; edges[v1][v2]=weight; numsEdge++; &#125; //在图中删除一条边 public void removeVertix(int v1,int v2)&#123; edges[v1][v2]=0; numsEdge--; &#125;&#125; 邻接表在一个图是稀疏图的时候，使用邻接矩阵来表示一个图其实是很浪费存储空间的。咋办，邻接表法主要就是用来解决这个问题的。所谓的邻接表，其实是将图中所有顶点组合起来做成一个单链表。而第i个单链表中的结点则表示依附于顶点Vi的边，这样的链表就可以称之为顶点Vi的边表。比如上面那个无向图的邻接表就可以如下所示: 实现给出一个有向图如下所示，可以写出他的邻接矩阵和邻接表的实现方法以及邻接矩阵的插入删除操作。 12345678910111213141516171819202122232425/** * @author WorthyYao * @date 2016/9/26 */public class Main &#123; public static void main(String[] args) &#123; //初始化图 AMGraph amg=new AMGraph(4); //初始化四个节点 String[] vertexs=&#123;"v1","v2","v3","v4"&#125;; for (int i=0;i&lt;vertexs.length;i++)&#123; amg.insertVertex(vertexs[i]); &#125; //插入四条边 amg.insertEdge(0,1,2); amg.insertEdge(0,2,5); amg.insertEdge(2,3,8); amg.insertEdge(3,0,7); System.out.println("图中顶点数为: "+amg.getNumOfVertix()); System.out.println("图中边的数目为: "+amg.getNumOfEdge()); amg.removeVertix(2,3); System.out.println("在删除一条边后的总边数为: "+amg.getNumOfEdge()); &#125;&#125; 运行结果如下: 而邻接表的矩阵初始化则如下代码所示: 1234567891011121314151617181920212223242526272829303132333435363738394041/** * @author WorthyYao * @date 2016/9/26 *///邻接表中表对应的链表的结构class Enode&#123; //初始化邻接表中顶点的名称以及值 String vertex; int value; Enode next;&#125;class Vnode&#123; String vertex; Enode firstEdge;&#125;//邻接表中图的存储public class ALGraph &#123; public static void main(String[] args) &#123; String[] vertexs=&#123;"v1","v2","v3","v4"&#125;; Vnode[] vers=new Vnode[vertexs.length]; //初始化链表 for(int i=0;i&lt;vertexs.length;i++)&#123; vers[i].vertex=vertexs[i]; vers[i].firstEdge=null; &#125; //插入几条边，初始化邻接表图 Enode node1=new Enode(); Enode node2=new Enode(); Enode node3=new Enode(); Enode node4=new Enode(); node1.vertex="v2";node1.value=2; node2.vertex="v2";node2.value=5; node3.vertex="v4";node1.value=8; node4.vertex="v1";node1.value=7; vers[0].firstEdge=node1; node1.next=node2; vers[2].firstEdge=node3; vers[3].firstEdge=node4; &#125;&#125;]]></content>
+      <categories>
+        <category>数据结构</category>
+        <category>算法</category>
+      </categories>
+      <tags>
+        <tag>数据结构</tag>
+        <tag>算法</tag>
+        <tag>图</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[迁移到coding.net]]></title>
+    <url>%2F2016%2F09%2F22%2F%E8%BF%81%E7%A7%BB%E5%88%B0coding.net%2F</url>
+    <content type="text"><![CDATA[博客已经弄了很久了，不过一直更新的不多。除了最近的事情多以外，很大的一个原因就是博客以前是放在ConoHa上面的。国内的访问速度一直不太好,打开就要很久。最近因为项目的原因用到了coding.net。国内的感觉还不错。而且他也提供pages服务。索性就决定放到这边来了。而且把域名绑定到这边的pages上面来。用过之后感觉速度还是蛮好的。以后如果没有什么大的变动的话，就在这安个小窝了，嘿嘿。已经快要十月了。事情真的是很多。论文，做实验，项目，找工作。所有的事情，似乎都一瞬间压上来了。好在與情分析这个项目暂时已经可以脱身了，赶快去把lab的事情做好吧。加油！]]></content>
+      <categories>
+        <category>Life</category>
+      </categories>
+      <tags>
+        <tag>Life</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[與情分析的爬虫]]></title>
+    <url>%2F2016%2F07%2F28%2F%E8%88%87%E6%83%85%E5%88%86%E6%9E%90%E7%9A%84%E7%88%AC%E8%99%AB%2F</url>
+    <content type="text"><![CDATA[暑假的任务里面有一个與情分析。这两天我爬取了一些数据准备在后面的时候用到。因为是高校的與情分析，数据的获取其实是一个蛮忧伤的事情。最后想了半天还是决定从百度新闻上面搜索到的新闻的价值可能会比较高一点。数据来源清晰后还有一个问题就是怎么直接抽取网页正文，我在试用了BeautifulSoup和xpath都没有找到满意的解决方案时，无意中找到了两个python的处理网页的库，感觉还是很不错的。推荐一下，分别就是readability-lxml和html2text。看一下他们的官方例子。readability的：1234from readability.readability importDocument import urllib html = urllib.urlopen(url).read()readable_article = Document(html).summary()readable_title = Document(html).short_title() html2text的12# -*- coding: utf-8 -*- import html2textprint html2text.html2text(u'&lt;html&gt;&lt;body&gt;&lt;div&gt;&lt;div class="note" id="link-report"&gt;&lt;p&gt;（1）网页去噪&lt;/p&gt;&lt;p&gt;网页去噪需要去掉与网页内表达内容不相关的文字，如广告，评论等等。现在对于博客、新闻类的网页去噪已经有很多的应用，比如常用的印象笔记、有道笔记就用到了相关的技术。&lt;/p&gt;&lt;p&gt;因为项目的需要，也需要对网页进行去噪，留下有用的内容。所以在网上找了相关的网页去噪的开源项目。&lt;/p&gt;&lt;p&gt;（2）参考链接&lt;/p&gt;&lt;p&gt;主要参考的链接是这篇“网页正文抽取工具”， 应该是抓取的新浪weibo上的相关的微博内容。里面介绍了给出了项目的地址，有Java、C++、C#、Perl、Python的。&lt;/p&gt;&lt;p&gt;因为项目是Python写的，所以初步选定使用 Decruft ， Python readability ， Python boilerpipe ，Pyhon Goose这几种。&lt;/p&gt;&lt;p&gt;（3）实践操作&lt;/p&gt;&lt;p&gt;Python readability的使用：&lt;/p&gt;&lt;p&gt;from readability.readability import Document&lt;/p&gt;&lt;p&gt;import urllib&lt;/p&gt;&lt;p&gt;html = urllib.urlopen(url).read()&lt;/p&gt;&lt;p&gt;readable_article = Document(html).summary()&lt;/p&gt;&lt;p&gt;readable_title = Document(html).short_title()&lt;/p&gt;&lt;p&gt;最后抽取出来的readable_article是带HTML标签的文本。还需要进行clean html操作。如果需要得到纯文本内容，还需要做其他工作&lt;/p&gt;&lt;p&gt;“decruft is a fork of python-readability to make it faster. It also has some logic corrections and improvements along the way.” （引自：&lt;/p&gt;&lt;a rel="nofollow" href="http://www.minvolai.com/blog/decruft-arc90s-readability-in-python/" target="_blank"&gt;http://www.minvolai.com/blog/decruft-arc90s-readability-in-python/&lt;/a&gt;&lt;p&gt;）&lt;/p&gt;&lt;p&gt;decruft是Python readability的fork版本，其主要提高了readability的速度。decruft的源码是放在Goolge上的，发现他只有0.1版本，而且是10年9月的，但是Python-readability一直在更新的，其核心的readability.py是7个月前更新的，所以不能保证decruft的性能要比现在的readability好，我没有下载decruft进行试验，有兴趣可以自己试验一下。&lt;/p&gt;&lt;p&gt;Python-boilerpipe：是Boilerpipe的Python版本的Warpper，在使用的时候需要依赖jpype, chardet. 在构造Extractor的时候可以定制自己需要的抽取器，具体有：&lt;/p&gt;&lt;p&gt;DefaultExtractor&lt;/p&gt;&lt;p&gt;ArticleExtractor&lt;/p&gt;&lt;p&gt;ArticleSentencesExtractor&lt;/p&gt;&lt;p&gt;KeepEverythingExtractor&lt;/p&gt;&lt;p&gt;KeepEverythingWithMinKWordsExtractor&lt;/p&gt;&lt;p&gt;LargestContentExtractor&lt;/p&gt;&lt;p&gt;NumWordsRulesExtractor&lt;/p&gt;&lt;p&gt;CanolaExtractor&lt;/p&gt;&lt;p&gt;这个项目可以自己选择抽取出的正文内容格式：可以是纯文本的，也可以是携带HTML的。&lt;/p&gt;&lt;p&gt;Python-Goose：&lt;/p&gt;&lt;p&gt;经过试验，决定使用Goose，可以在这个网址上测试 &lt;/p&gt;&lt;a rel="nofollow" href="http://jimplush.com/blog/goose" target="_blank"&gt; http://jimplush.com/blog/goose&lt;/a&gt;&lt;p&gt; Goose的抽取效果。Goose还能够获得Meta description。&lt;/p&gt;&lt;p&gt;Goose最后可以获得抽取后的纯文本。&lt;/p&gt;&lt;/div&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;') 在结合了这两个一起使用之后，感觉拿下来的抽取网页正文效果是不错的。代码如下。123456789101112131415161718192021222324252627282930313233343536373839404142434445# -*- coding: utf-8 -*-import urllib2import sysimport refrom readability import Documentimport html2textimport timeimport os#设置编码为utf-8reload(sys)sys.setdefaultencoding( "utf-8" )user_agent = 'Mozilla/4.0 (compatible; MSIE 5.5; Windows NT)'headers = &#123; 'User-Agent' : user_agent &#125;base_url="http://news.baidu.com/ns?word=&#123;school&#125;&amp;pn=&#123;number&#125;&amp;rn=20"school_list=['上海交通大学','同济大学','复旦大学','华东师范大学','上海大学','华东理工大学','东华大学','上海财经大学','上海外国语大学','华东政法大学','上海师范大学','上海理工大学','上海海事大学','上海海洋大学','上海中医药大学','上海体育学院','上海音乐学院','上海戏剧学院','上海对外经贸大学','上海电机学院','上海工程技术大学','上海科技大学','大连海事大学','武汉理工大学','广西航运学院','武汉交通科技大学','集美大学','南通海校','中国海洋大学']for school in school_list: os.mkdir(school) count=0 for i in range(0,401,20): url=base_url.format(school=school,number=i) print url time.sleep(4) try: request=urllib2.Request(url,headers=headers) html=urllib2.urlopen(request).read() re_result=r'&lt;div class="result" .*?&gt;(.*?)&lt;/div&gt;' re_href=r'&lt;a href="(.*?)"' result=re.findall(re_result,html,re.S|re.M) for detail in result: href=re.findall(re_href,detail,re.S|re.M)[0] time.sleep(1) try: html=urllib2.urlopen(href,timeout=5).read() readable_article = Document(html).summary() result=html2text.html2text(readable_article) print "processing...." with open(school+"/"+str(count)+".txt","w") as f: f.write(result) count=count+1 except Exception,e: print e]]></content>
+      <categories>
+        <category>It</category>
+      </categories>
+      <tags>
+        <tag>爬虫</tag>
+        <tag>與情分析</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[LeetCode 077 Combinations]]></title>
+    <url>%2F2016%2F07%2F25%2FLeetCode-077-Combinations%2F</url>
+    <content type="text"><![CDATA[Given two integers n and k, return all possible combinations of k numbers out of 1 … n. For example,If n = 4 and k = 2, a solution is: [ [2,4], [3,4], [2,3], [1,2], [1,3], [1,4],] 被这道题坑了超级长的时间。题目很长时间内都没有看明白。我把中间的诸如[2,4]以为是从2到4.我就觉得很奇怪，明明是挑出k个数，为什么挑出这么多数字来。就因为这个卡了好久的时间。这道题目又是一道深度优先搜索的问题，也就是回溯法的应用。说起来这种题目已经做了好几道了。慢慢的有点儿感觉，但还是需要多练习练习。123456789101112131415161718192021222324public class Solution &#123; public List&lt;List&lt;Integer&gt;&gt; combine(int n, int k) &#123; List&lt;List&lt;Integer&gt;&gt; res=new ArrayList&lt;List&lt;Integer&gt;&gt;(); if(n&lt;=0||n&lt;k) return res; ArrayList&lt;Integer&gt; item=new ArrayList&lt;&gt;(); dfs(n,k,1,item,res); return res; &#125; private void dfs(int n,int k,int start,ArrayList&lt;Integer&gt; item,List&lt;List&lt;Integer&gt;&gt; res)&#123; if(item.size()==k)&#123; ArrayList&lt;Integer&gt; temp=new ArrayList&lt;Integer&gt;(item); res.add(temp); return; &#125; for (int i=start;i&lt;=n;i++)&#123; item.add(i); dfs(n,k,i+1,item,res); item.remove(item.size()-1); &#125; &#125;&#125;]]></content>
+      <categories>
+        <category>it</category>
+      </categories>
+      <tags>
+        <tag>算法</tag>
+        <tag>LeetCode</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[LeetCode 069 Sqrt(x)]]></title>
+    <url>%2F2016%2F07%2F14%2FLeetCode-069-Sqrt-x%2F</url>
+    <content type="text"><![CDATA[Implement int sqrt(int x). Compute and return the square root of x. 计算x的平方根。题目难度还好，有两个问题。第一个是普通的遍历的话时间是不够用的，二分法来做。 第二是注意题目给的是int型，做的时候要注意溢出的问题。所以用了long型。 1234567891011121314151617public class Solution &#123; public int mySqrt(int x) &#123; long start=1,end=x; while (start+1&lt;end)&#123; long mid=start+(end-start)/2; if(mid*mid&lt;=x)&#123; start=mid; &#125;else &#123; end=mid; &#125; &#125; if(end*end&lt;=x)&#123; return (int)end; &#125; return (int)start; &#125;&#125;]]></content>
+      <categories>
+        <category>it</category>
+      </categories>
+      <tags>
+        <tag>leetcode</tag>
+        <tag>algorithm</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[最后一个暑假来了]]></title>
+    <url>%2F2016%2F07%2F05%2F%E6%9C%80%E5%90%8E%E4%B8%80%E4%B8%AA%E6%9A%91%E5%81%87%E6%9D%A5%E4%BA%86%2F</url>
+    <content type="text"><![CDATA[这么长时间，上传的都是leetcode题目，稍微写点生活上的杂记吧。其实有一段时间没有更新了，主要是前段时间的考试比较多。另外还有一些lab的东西，似乎总是无法抽出身来去做一些别的事情，令人遗憾。考试结束了，生活还是规律一点吧。学生时代的最后一个暑假了，加油。]]></content>
+      <categories>
+        <category>life</category>
+      </categories>
+  </entry>
+  <entry>
+    <title><![CDATA[LeetCode 064 Minimum Path Sum]]></title>
+    <url>%2F2016%2F07%2F05%2FLeetCode-064-Minimum-Path-Sum%2F</url>
+    <content type="text"><![CDATA[Given a m x n grid filled with non-negative numbers, find a path from top left to bottom right which minimizes the sum of all numbers along its path. Note: You can only move either down or right at any point in time. 这道题目是求在一个矩阵中的最短路径问题。和前面两道题目是非常像的，也是一个动态规划的问题。 这道题目的精髓是抽象出来sum[i][j]=grid[i][j]+min(sum[i-1][j],sum[i][j-1]),也就是说当前的最小值是需要根据当前值和上方最小值与左方最小值来共同决定。12345678910111213141516171819202122public class Solution &#123; public int minPathSum(int[][] grid) &#123; int m=grid.length; int n=grid[0].length; int[][] sum=new int[m][n]; sum[0][0]=grid[0][0]; for(int i=1;i&lt;m;i++)&#123; sum[i][0]=sum[i-1][0]+grid[i][0]; &#125; for(int i=1;i&lt;n;i++)&#123; sum[0][i]=sum[0][i-1]+grid[0][i]; &#125; for(int i=1;i&lt;m;i++)&#123; for(int j=1;j&lt;n;j++)&#123; sum[i][j]=grid[i][j]+Math.min(sum[i-1][j],sum[i][j-1]); &#125; &#125; return sum[m-1][n-1]; &#125;&#125;]]></content>
+      <categories>
+        <category>it</category>
+      </categories>
+      <tags>
+        <tag>leetcode</tag>
+        <tag>algorithm</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[LeetCode 063 Unique Paths II]]></title>
+    <url>%2F2016%2F07%2F04%2FLeetCode-063-Unique-Paths%2F</url>
+    <content type="text"><![CDATA[Follow up for “Unique Paths”: Now consider if some obstacles are added to the grids. How many unique paths would there be? An obstacle and empty space is marked as 1 and 0 respectively in the grid. For example,There is one obstacle in the middle of a 3x3 grid as illustrated below. [ [0,0,0], [0,1,0], [0,0,0]]The total number of unique paths is 2.这道题目和前面的62是同一样的题目，所以就放在一起来写了。题目的意思是要找出机器人在一个m*n的矩阵中到达对角的所有可能。而63和62所不同的是，题目中设置了障碍，当遇到障碍的时候，这条路就是走不通的情况。题目的解决方法是用动态规划来解决的。如果能注意到，其中每个点的总路数其实是它的上面那个点的路数与左边路数之和。问题是好解决的。而在本道题目中，在遇到障碍的时候，将那一个具体格置为0即可。1234567891011121314151617181920212223242526272829303132333435public class Solution &#123; public int uniquePathsWithObstacles(int[][] obstacleGrid) &#123; int m=obstacleGrid.length; int n=obstacleGrid[0].length; int [][]path=new int[m][n]; for(int i=0;i&lt;m;i++)&#123; if(obstacleGrid[i][0]!=1)&#123; path[i][0]=1; &#125;else&#123; break; &#125; &#125; for(int i=0;i&lt;n;i++)&#123; if(obstacleGrid[0][i]!=1)&#123; path[0][i]=1; &#125;else&#123; break; &#125; &#125; for(int i=0;i&lt;m;i++)&#123; for(int j=0;j&lt;n;j++)&#123; if(obstacleGrid[i][j]==1)&#123; path[i][j]=0; &#125;else &#123; path[i][j]=path[i-1][j]+path[i][j-1]; &#125; &#125; &#125; return path[m-1][n-1]; &#125;&#125;]]></content>
+      <categories>
+        <category>it</category>
+      </categories>
+      <tags>
+        <tag>leetcode</tag>
+        <tag>algorithm</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[LeetCode 060 Permutation Sequence]]></title>
+    <url>%2F2016%2F06%2F30%2FLeetCode-060-Permutation-Sequence%2F</url>
+    <content type="text"><![CDATA[The set [1,2,3,…,n] contains a total of n! unique permutations. By listing and labeling all of the permutations in order,We get the following sequence (ie, for n = 3): “123”“132”“213”“231”“312”“321”Given n and k, return the kth permutation sequence. 这道题和46,47题都很有关系的，但是那两道题目都是一个个的插入进去来做的。这道题目如果先排好序再来做的话，时间复杂度是o(n3)，明显是不可以的。 如果换用别的思路的话，可以发现的是如果给的是n个数，那么会有的是n！个组合。而第一个数是有(n-1)!个可能的。依次往下类推下去，可以得出这道题的解决办法。另外一点是用arraylist来保存数字，当这些数字被用过以后，就从arraylist中除掉。1234567891011121314151617181920212223public class Solution &#123; public String getPermutation(int n, int k) &#123; String res=""; ArrayList&lt;Integer&gt; number=new ArrayList&lt;&gt;(); for(int i=1;i&lt;=n;i++)&#123; number.add(i); &#125; k--; int temp=1; for(int i=1;i&lt;=n;i++)&#123; temp=temp*i; &#125; for (int i=0;i&lt;n;i++)&#123; temp=temp/(n-i); int index=k/temp; k=k%temp; res=res+number.get(index); number.remove(index); &#125; return res.toString(); &#125;&#125;]]></content>
+      <categories>
+        <category>it</category>
+      </categories>
+      <tags>
+        <tag>leetcode</tag>
+        <tag>algorithm</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[LeetCode 059 Spiral Matrix II]]></title>
+    <url>%2F2016%2F06%2F05%2F059-Spiral-Matrix-II%2F</url>
+    <content type="text"><![CDATA[Given an integer n, generate a square matrix filled with elements from 1 to n2 in spiral order. For example,Given n = 3, You should return the following matrix:[ [ 1, 2, 3 ], [ 8, 9, 4 ], [ 7, 6, 5 ]] 螺旋矩阵第二道。不过并没有太大的新意。和第一道的思路基本是差不多的。就像剥洋葱，一层层的剥下去就可以了。1234567891011121314151617181920212223242526272829303132public class Solution &#123; public int[][] generateMatrix(int n) &#123; int[][] matrix=new int[n][n]; int x1=0, y1=0; int x2=n-1, y2=n-1; int temp=0; while (x1&lt;=x2&amp;&amp;y1&lt;=y2)&#123; for(int i=y1;i&lt;=y2;i++)&#123; temp++; matrix[x1][i]=temp; &#125; for(int i=x1+1;i&lt;=x2;i++)&#123; temp++; matrix[i][y2]=temp; &#125; if(x1!=x2)&#123; for(int i=y2-1;i&gt;=y1;i--)&#123; temp++; matrix[x2][i]=temp; &#125; &#125; if(y1!=y2)&#123; for(int i=x2-1;i&gt;x1;i--)&#123; temp++; matrix[i][y1]=temp; &#125; &#125; x1++;y1++;x2--;y2--; &#125; return matrix; &#125;&#125;]]></content>
+      <categories>
+        <category>it</category>
+      </categories>
+      <tags>
+        <tag>leetcode</tag>
+        <tag>algorithm</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[LeetCode 058 Length of Last Word]]></title>
+    <url>%2F2016%2F06%2F05%2FLeetCode-058-Length-of-Last-Word%2F</url>
+    <content type="text"><![CDATA[Given a string s consists of upper/lower-case alphabets and empty space characters ‘ ‘, return the length of last word in the string. If the last word does not exist, return 0. Note: A word is defined as a character sequence consists of non-space characters only. For example,Given s = “Hello World”,return 5. 题目的意思是给出一个字符串，求出这个字符串的最后一个没有空格的完整的字符串。题目的难度还好，我想到的是从字符串的最后开始出发，先找到end在哪里。然后再找出start在哪里。最后返回两个的之差就可以了。我在做的时候，遇到的一个坑就是在判断end的时候，是判断的s.length!=’ ‘，给搞反了。123456789101112131415public class Solution &#123; public int lengthOfLastWord(String s) &#123; if(s.length()==0) return 0; int end=s.length()-1; while (end&gt;=0&amp;&amp;s.charAt(end)!=' ')&#123; end--; &#125; if(end==-1) return 0; int start=end; while (start&gt;=0&amp;&amp;s.charAt(start)!=' ')&#123; start--; &#125; return end-start; &#125;&#125;]]></content>
+      <categories>
+        <category>it</category>
+      </categories>
+      <tags>
+        <tag>leetcode</tag>
+        <tag>algorithm</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[LeetCode 057 Insert Interval]]></title>
+    <url>%2F2016%2F06%2F02%2FLeetCode-057-Insert-Interval%2F</url>
+    <content type="text"><![CDATA[Given a set of non-overlapping intervals, insert a new interval into the intervals (merge if necessary). You may assume that the intervals were initially sorted according to their start times. Example 1:Given intervals [1,3],[6,9], insert and merge [2,5] in as [1,5],[6,9]. Example 2:Given [1,2],[3,5],[6,7],[8,10],[12,16], insert and merge [4,9] in as [1,2],[3,10],[12,16]. This is because the new interval [4,9] overlaps with [3,5],[6,7],[8,10]. 因为这道题目和56题大部分相同，就放在这一块写了。57题相较于56只是多了一个在list中插入Interval的操作。主要还是用到了merge函数的部分。主要的思路是先通过将list进行一次排序，然后再通过start和end的位置，来进行合并。这道题主要学习了comparator接口的使用。1234567891011121314151617181920212223242526272829303132333435363738public class Solution &#123; public List&lt;Interval&gt; insert(List&lt;Interval&gt; intervals, Interval newInterval) &#123; List&lt;Interval&gt; res=new ArrayList&lt;&gt;(); if(intervals.size()==0)&#123; res.add(newInterval); return res; &#125; intervals.add(newInterval); res=merge(intervals); return res; &#125; public List&lt;Interval&gt; merge(List&lt;Interval&gt; intervals) &#123; if(intervals==null||intervals.size()&lt;=1)&#123; return intervals; &#125; Collections.sort(intervals,new IntervalComparator()); List&lt;Interval&gt; res=new ArrayList&lt;Interval&gt;(); Interval last=intervals.get(0); for(int i=1;i&lt;intervals.size();i++)&#123; Interval curr=intervals.get(i); if(curr.start&lt;=last.end)&#123; last.end=Math.max(last.end,curr.end); &#125;else &#123; res.add(last); last=curr; &#125; &#125; res.add(last); return res; &#125; public class IntervalComparator implements Comparator&lt;Interval&gt;&#123; public int compare(Interval a,Interval b)&#123; return a.start-b.start; &#125; &#125;&#125;]]></content>
+      <categories>
+        <category>it</category>
+      </categories>
+      <tags>
+        <tag>leetcode</tag>
+        <tag>algorithm</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[LeetCode 055 Jump Game(java)]]></title>
+    <url>%2F2016%2F05%2F31%2FLeetCode-055-Jump-Game-java%2F</url>
+    <content type="text"><![CDATA[Given an array of non-negative integers, you are initially positioned at the first index of the array. Each element in the array represents your maximum jump length at that position. Determine if you are able to reach the last index. For example:A = [2,3,1,1,4], return true. A = [3,2,1,0,4], return false. 这道题的要求是判断最后在给定的数组中能否走到最后的一个问题，解决思路是每走一步的时候判断是否越过界。时间复杂度为o(n). 12345678910111213public class Solution &#123; public boolean canJump(int[] nums) &#123; int max=nums[0]; for(int i=1;i&lt;nums.length;i++)&#123; if (max==0) return false; max--; if(nums[i]&gt;max)&#123; max=nums[i]; &#125; &#125; return true; &#125;&#125;]]></content>
+      <categories>
+        <category>it</category>
+      </categories>
+      <tags>
+        <tag>leetcode</tag>
+        <tag>algorithm</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[博客上线]]></title>
+    <url>%2F2016%2F05%2F29%2F%E5%8D%9A%E5%AE%A2%E4%B8%8A%E7%BA%BF%2F</url>
+    <content type="text"><![CDATA[博客上线了，以后就在这里面写字吧。]]></content>
+      <categories>
+        <category>Life</category>
+        <category>Testing</category>
+      </categories>
+      <tags>
+        <tag>Testing</tag>
+        <tag>Life</tag>
+        <tag>Another Tag</tag>
+      </tags>
+  </entry>
+</search>
