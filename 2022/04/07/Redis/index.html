@@ -1,0 +1,1414 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="Redis,">
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2">
+
+
+
+
+
+
+<meta name="description" content="一、数据结构1.1 基础数据结构1.1.1 String 简介:String是Redis最基础的数据结构类型，它是二进制安全的，可以存储图片或者序列化的对象，值最大存储为512M 简单使用举例: set key value、get key等 应用场景：共享session、分布式锁，计数器、限流。 内部编码有3种，int（8字节长整型）/embstr（小于等于39字节字符串）/raw（大于39个字节">
+<meta name="keywords" content="Redis">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Redis">
+<meta property="og:url" content="http://yoursite.com/2022/04/07/Redis/index.html">
+<meta property="og:site_name" content="云之遥">
+<meta property="og:description" content="一、数据结构1.1 基础数据结构1.1.1 String 简介:String是Redis最基础的数据结构类型，它是二进制安全的，可以存储图片或者序列化的对象，值最大存储为512M 简单使用举例: set key value、get key等 应用场景：共享session、分布式锁，计数器、限流。 内部编码有3种，int（8字节长整型）/embstr（小于等于39字节字符串）/raw（大于39个字节">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://github.com/yaowenxi/myImage/raw/master/redis/redisson.png">
+<meta property="og:updated_time" content="2022-04-08T08:02:48.584Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Redis">
+<meta name="twitter:description" content="一、数据结构1.1 基础数据结构1.1.1 String 简介:String是Redis最基础的数据结构类型，它是二进制安全的，可以存储图片或者序列化的对象，值最大存储为512M 简单使用举例: set key value、get key等 应用场景：共享session、分布式锁，计数器、限流。 内部编码有3种，int（8字节长整型）/embstr（小于等于39字节字符串）/raw（大于39个字节">
+<meta name="twitter:image" content="https://github.com/yaowenxi/myImage/raw/master/redis/redisson.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"hide","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2022/04/07/Redis/">
+
+
+
+
+
+  <title>Redis | 云之遥</title>
+  
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?88f3ed4bb92a0cc83cdf7ffa3f7bc096";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">云之遥</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2022/04/07/Redis/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="云之遥">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="云之遥">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Redis</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2022-04-07T20:26:07+00:00">
+                2022-04-07
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2022/04/07/Redis/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2022/04/07/Redis/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h3 id="一、数据结构"><a href="#一、数据结构" class="headerlink" title="一、数据结构"></a>一、数据结构</h3><h4 id="1-1-基础数据结构"><a href="#1-1-基础数据结构" class="headerlink" title="1.1 基础数据结构"></a>1.1 基础数据结构</h4><h5 id="1-1-1-String"><a href="#1-1-1-String" class="headerlink" title="1.1.1 String"></a>1.1.1 String</h5><ul>
+<li>简介:String是Redis最基础的数据结构类型，它是二进制安全的，可以存储图片或者序列化的对象，值最大存储为512M</li>
+<li>简单使用举例: set key value、get key等</li>
+<li>应用场景：共享session、分布式锁，计数器、限流。</li>
+<li>内部编码有3种，int（8字节长整型）/embstr（小于等于39字节字符串）/raw（大于39个字节字符串）</li>
+</ul>
+<h5 id="1-1-2-Hash"><a href="#1-1-2-Hash" class="headerlink" title="1.1.2 Hash"></a>1.1.2 Hash</h5><ul>
+<li>简介：在Redis中，哈希类型是指v（值）本身又是一个键值对（k-v）结构</li>
+<li>简单使用举例：hset key field value 、hget key field</li>
+<li>内部编码：ziplist（压缩列表） 、hashtable（哈希表）</li>
+<li>应用场景：缓存用户信息等。</li>
+<li><strong>注意点</strong>：如果开发使用hgetall，哈希元素比较多的话，可能导致Redis阻塞，可以使用hscan。而如果只是获取部分field，建议使用hmget。</li>
+</ul>
+<a id="more"></a>
+<h5 id="1-1-3-List"><a href="#1-1-3-List" class="headerlink" title="1.1.3 List"></a>1.1.3 List</h5><ul>
+<li><p>简介：列表（list）类型是用来存储多个有序的字符串，一个列表最多可以存储2^32-1个元素。</p>
+</li>
+<li><p>简单实用举例：lpush key value [value …] 、lrange key start end</p>
+</li>
+<li><p>内部编码：ziplist（压缩列表）、linkedlist（链表）</p>
+</li>
+<li><p>应用场景：消息队列，文章列表</p>
+</li>
+</ul>
+<p>  list应用场景参考以下：</p>
+<blockquote>
+<ul>
+<li>lpush+lpop=Stack（栈）</li>
+<li>lpush+rpop=Queue（队列）</li>
+<li>lpsh+ltrim=Capped Collection（有限集合）</li>
+<li>lpush+brpop=Message Queue（消息队列）</li>
+</ul>
+</blockquote>
+<h5 id="1-1-4-Set"><a href="#1-1-4-Set" class="headerlink" title="1.1.4 Set"></a>1.1.4 Set</h5><ul>
+<li>简介：集合（set）类型也是用来保存多个的字符串元素，但是不允许重复元素</li>
+<li>简单使用举例：sadd key element [element …]、smembers key</li>
+<li>内部编码：intset（整数集合）、hashtable（哈希表）</li>
+<li><strong>注意点</strong>：smembers和lrange、hgetall都属于比较重的命令，如果元素过多存在阻塞Redis的可能性，可以使用sscan来完成。</li>
+<li>应用场景：用户标签,生成随机数抽奖、社交需求。</li>
+</ul>
+<h5 id="1-1-5-SortedSort"><a href="#1-1-5-SortedSort" class="headerlink" title="1.1.5 SortedSort"></a>1.1.5 SortedSort</h5><ul>
+<li>简介：已排序的字符串集合，同时元素不能重复</li>
+<li>简单格式举例：zadd key score member [score member …]，zrank key member</li>
+<li>底层内部编码：ziplist（压缩列表）、skiplist（跳跃表）</li>
+<li>应用场景：排行榜，社交需求（如用户点赞）。</li>
+</ul>
+<h4 id="1-2-拓展数据结构"><a href="#1-2-拓展数据结构" class="headerlink" title="1.2 拓展数据结构"></a>1.2 拓展数据结构</h4><h5 id="1-2-1-Geospatial"><a href="#1-2-1-Geospatial" class="headerlink" title="1.2.1 Geospatial"></a>1.2.1 Geospatial</h5><p>Redis3.2推出的，地理位置定位，用于存储地理位置信息，并对存储的信息进行操作。</p>
+<h5 id="1-2-2-Hyperloglog"><a href="#1-2-2-Hyperloglog" class="headerlink" title="1.2.2 Hyperloglog"></a>1.2.2 Hyperloglog</h5><p>用来做基数统计算法的数据结构，如统计网站的UV</p>
+<h5 id="1-2-3-Bitmap"><a href="#1-2-3-Bitmap" class="headerlink" title="1.2.3 Bitmap"></a>1.2.3 Bitmap</h5><p>用一个比特位来映射某个元素的状态，在Redis中，它的底层是基于字符串类型实现的，可以把bitmaps成作一个以比特位为单位的数组</p>
+<h3 id="二、过期策略、内存淘汰机制"><a href="#二、过期策略、内存淘汰机制" class="headerlink" title="二、过期策略、内存淘汰机制"></a>二、过期策略、内存淘汰机制</h3><h4 id="2-1-过期策略"><a href="#2-1-过期策略" class="headerlink" title="2.1 过期策略"></a>2.1 过期策略</h4><p>我们在<code>set key</code>的时候，可以给它设置一个过期时间，比如<code>expire key 60</code>。指定这key60s后过期，60s后，redis该如何处理？常见几种过期策略如下：</p>
+<h5 id="2-1-1-定时过期"><a href="#2-1-1-定时过期" class="headerlink" title="2.1.1 定时过期"></a>2.1.1 定时过期</h5><p>每个设置过期时间的key都需要创建一个定时器，到过期时间就会立即对key进行清除。该策略可以立即清除过期的数据，对内存很友好；但是会占用大量的CPU资源去处理过期的数据，从而影响缓存的响应时间和吞吐量。</p>
+<h5 id="2-1-2-惰性过期"><a href="#2-1-2-惰性过期" class="headerlink" title="2.1.2 惰性过期"></a>2.1.2 惰性过期</h5><p>只有当访问一个key时，才会判断该key是否已过期，过期则清除。该策略可以最大化地节省CPU资源，却对内存非常不友好。极端情况可能出现大量的过期key没有再次被访问，从而不会被清除，占用大量内存。</p>
+<h5 id="2-1-3-定期过期"><a href="#2-1-3-定期过期" class="headerlink" title="2.1.3 定期过期"></a>2.1.3 定期过期</h5><p>每隔一定的时间，会扫描一定数量的数据库的expires字典中一定数量的key，并清除其中已过期的key。该策略是前两者的一个折中方案。通过调整定时扫描的时间间隔和每次扫描的限定耗时，可以在不同情况下使得CPU和内存资源达到最优的平衡效果。</p>
+<p>expires字典会保存所有设置了过期时间的key的过期时间数据，其中，key是指向键空间中的某个键的指针，value是该键的毫秒精度的UNIX时间戳表示的过期时间。键空间是指该Redis集群中保存的所有键。</p>
+<p>Redis中同时使用了<strong>惰性过期和定期过期</strong>两种过期策略。</p>
+<ul>
+<li>假设Redis当前存放30万个key，并且都设置了过期时间，如果你每隔100ms就去检查这全部的key，CPU负载会特别高，最后可能会挂掉。</li>
+<li>因此，redis采取的是定期过期，每隔100ms就随机抽取一定数量的key来检查和删除的。</li>
+<li>但是呢，最后可能会有很多已经过期的key没被删除。这时候，redis采用惰性删除。在你获取某个key的时候，redis会检查一下，这个key如果设置了过期时间并且已经过期了，此时就会删除。</li>
+</ul>
+<h4 id="2-2-内存淘汰机制"><a href="#2-2-内存淘汰机制" class="headerlink" title="2.2 内存淘汰机制"></a>2.2 内存淘汰机制</h4><ul>
+<li>volatile-lru：当内存不足以容纳新写入数据时，从设置了过期时间的key中使用LRU（最近最少使用）算法进行淘汰；</li>
+<li>allkeys-lru：当内存不足以容纳新写入数据时，从所有key中使用LRU（最近最少使用）算法进行淘汰。</li>
+<li>volatile-lfu：4.0版本新增，当内存不足以容纳新写入数据时，在过期的key中，使用LFU算法进行删除key。</li>
+<li>allkeys-lfu：4.0版本新增，当内存不足以容纳新写入数据时，从所有key中使用LFU算法进行淘汰；</li>
+<li>volatile-random：当内存不足以容纳新写入数据时，从设置了过期时间的key中，随机淘汰数据；。</li>
+<li>allkeys-random：当内存不足以容纳新写入数据时，从所有key中随机淘汰数据。</li>
+<li>volatile-ttl：当内存不足以容纳新写入数据时，在设置了过期时间的key中，根据过期时间进行淘汰，越早过期的优先被淘汰；</li>
+<li>noeviction：默认策略，当内存不足以容纳新写入数据时，新写入操作会报错。</li>
+</ul>
+<h3 id="三、持久化机制"><a href="#三、持久化机制" class="headerlink" title="三、持久化机制"></a>三、持久化机制</h3><p>Redis是基于内存的非关系型K-V数据库，既然它是基于内存的，如果Redis服务器挂了，数据就会丢失。为了避免数据丢失了，Redis提供了<strong>持久化</strong>，即把数据保存到磁盘。</p>
+<h4 id="3-1-RDB"><a href="#3-1-RDB" class="headerlink" title="3.1 RDB"></a>3.1 RDB</h4><p>RDB持久化机制，对redis中的数据执行周期性的持久化</p>
+<h5 id="3-1-1-工作流程"><a href="#3-1-1-工作流程" class="headerlink" title="3.1.1 工作流程"></a>3.1.1 工作流程</h5><ul>
+<li>redis根据配置自己尝试去生成rdb快照文件</li>
+<li>fork一个子进程出来</li>
+<li>子进程尝试将数据dump到临时的rdb快照文件中</li>
+<li>完成rdb快照文件的生成之后，就替换之前的旧的快照文件</li>
+</ul>
+<h5 id="3-1-2-优点"><a href="#3-1-2-优点" class="headerlink" title="3.1.2 优点"></a>3.1.2 优点</h5><p>1）RDB会生成多个数据文件，每个数据文件都代表了某一个时刻中redis的数据，这种多个数据文件的方式，非常适合做冷备，可以将这种完整的数据文件发送到一些远程的安全存储上去，比如说Amazon的S3云服务上去，在国内可以是阿里云的ODPS分布式存储上，以预定好的备份策略来定期备份redis中的数据。RDB也可以做冷备，生成多个文件，每个文件都代表了某一个时刻的完整的数据快照。AOF也可以做冷备，只有一个文件，但是你可以，每隔一定时间，去copy一份这个文件出来RDB做冷备，优势在哪儿呢？由redis去控制固定时长生成快照文件的事情，比较方便; AOF，还需要自己写一些脚本去做这个事情，各种定时</p>
+<p>RDB数据做冷备，在最坏的情况下，提供数据恢复的时候，速度比AOF快</p>
+<p>2）RDB对redis对外提供的读写服务，影响非常小，可以让redis保持高性能，因为redis主进程只需要fork一个子进程，让子进程执行磁盘IO操作来进行RDB持久化即可</p>
+<p>RDB，每次写，都是直接写redis内存，只是在一定的时候，才会将数据写入磁盘中</p>
+<p>AOF，每次都是要写文件的，虽然可以快速写入os cache中，但是还是有一定的时间开销的,速度肯定比RDB略慢一些</p>
+<p>3）相对于AOF持久化机制来说，直接基于RDB数据文件来重启和恢复redis进程，更加快速</p>
+<p>AOF，存放的指令日志，做数据恢复的时候，其实是要回放和执行所有的指令日志，来恢复出来内存中的所有数据的<br>RDB，就是一份数据文件，恢复的时候，直接加载到内存中即可</p>
+<h5 id="3-1-3-缺点"><a href="#3-1-3-缺点" class="headerlink" title="3.1.3 缺点"></a>3.1.3 缺点</h5><p>1）如果想要在redis故障时，尽可能少的丢失数据，那么RDB没有AOF好。一般来说，RDB数据快照文件，都是每隔5分钟，或者更长时间生成一次，这个时候就得接受一旦redis进程宕机，那么会丢失最近5分钟的数据</p>
+<p>这个问题，也是rdb最大的缺点，就是不适合做第一优先的恢复方案，如果你依赖RDB做第一优先恢复方案，会导致数据丢失的比较多</p>
+<p>2）RDB每次在fork子进程来执行RDB快照数据文件生成的时候，如果数据文件特别大，可能会导致对客户端提供的服务暂停数毫秒，或者甚至数秒</p>
+<p>一般不要让RDB的间隔太长，否则每次生成的RDB文件太大了，对redis本身的性能可能会有影响的</p>
+<h4 id="3-2-AOF"><a href="#3-2-AOF" class="headerlink" title="3.2 AOF"></a>3.2 AOF</h4><h5 id="3-2-1-优点"><a href="#3-2-1-优点" class="headerlink" title="3.2.1 优点"></a>3.2.1 优点</h5><p>（1）AOF可以更好的保护数据不丢失，一般AOF会每隔1秒，通过一个后台线程执行一次fsync操作，最多丢失1秒钟的数据</p>
+<p>每隔1秒，就执行一次fsync操作，保证os cache中的数据写入磁盘中</p>
+<p>redis进程挂了，最多丢掉1秒钟的数据</p>
+<p>（2）AOF日志文件以append-only模式写入，所以没有任何磁盘寻址的开销，写入性能非常高，而且文件不容易破损，即使文件尾部破损，也很容易修复</p>
+<p>（3）AOF日志文件即使过大的时候，出现后台重写操作，也不会影响客户端的读写。因为在rewrite log的时候，会对其中的指导进行压缩，创建出一份需要恢复数据的最小日志出来。再创建新日志文件的时候，老的日志文件还是照常写入。当新的merge后的日志文件ready的时候，再交换新老日志文件即可。</p>
+<p>（4）AOF日志文件的命令通过非常可读的方式进行记录，这个特性非常适合做灾难性的误删除的紧急恢复。比如某人不小心用flushall命令清空了所有数据，只要这个时候后台rewrite还没有发生，那么就可以立即拷贝AOF文件，将最后一条flushall命令给删了，然后再将该AOF文件放回去，就可以通过恢复机制，自动恢复所有数据</p>
+<h5 id="3-2-2-缺点"><a href="#3-2-2-缺点" class="headerlink" title="3.2.2 缺点"></a>3.2.2 缺点</h5><p>对于同一份数据来说，AOF日志文件通常比RDB数据快照文件更大</p>
+<p>AOF开启后，支持的写QPS会比RDB支持的写QPS低，因为AOF一般会配置成每秒fsync一次日志文件，当然，每秒一次fsync，性能也还是很高的，如果你要保证一条数据都不丢，也是可以的，AOF的fsync设置成没写入一条数据，fsync一次，那就完蛋了，redis的QPS大降</p>
+<p>以前AOF发生过bug，就是通过AOF记录的日志，进行数据恢复的时候，没有恢复一模一样的数据出来。所以说，类似AOF这种较为复杂的基于命令日志/merge/回放的方式，比基于RDB每次持久化一份完整的数据快照文件的方式，更加脆弱一些，容易有bug。不过AOF就是为了避免rewrite过程导致的bug，因此每次rewrite并不是基于旧的指令日志进行merge的，而是基于当时内存中的数据进行指令的重新构建，这样健壮性会好很多。</p>
+<p>唯一的比较大的缺点，其实就是做数据恢复的时候，会比较慢，还有做冷备，定期的备份，不太方便，可能要自己手写复杂的脚本去做，做冷备不太合适</p>
+<h4 id="3-3-如何选择持久化"><a href="#3-3-如何选择持久化" class="headerlink" title="3.3 如何选择持久化"></a>3.3 如何选择持久化</h4><ol>
+<li><p>不要仅仅使用RDB，因为那样会导致丢失很多数据</p>
+</li>
+<li><p>也不要仅仅使用AOF，因为那样有两个问题，第一，通过AOF做冷备，没有RDB做冷备，来的恢复速度更快; 第二，RDB每次简单粗暴生成数据快照，更加健壮，可以避免AOF这种复杂的备份和恢复机制的bug</p>
+</li>
+<li><p>综合使用AOF和RDB两种持久化机制，用AOF来保证数据不丢失，作为数据恢复的第一选择; 用RDB来做不同程度的冷备，在AOF文件都丢失或损坏不可用的时候，还可以使用RDB来进行快速的数据恢复</p>
+</li>
+</ol>
+<h3 id="四、Redis-主从"><a href="#四、Redis-主从" class="headerlink" title="四、Redis 主从"></a>四、Redis 主从</h3><h4 id="4-1-主从服务"><a href="#4-1-主从服务" class="headerlink" title="4.1 主从服务"></a>4.1 主从服务</h4><p>主从模式中，Redis部署了多台机器，有主节点，负责读写操作，有从节点，只负责读操作。从节点的数据来自主节点，实现原理就是<strong>主从复制机制</strong>。</p>
+<p>主从复制包括全量复制，增量复制两种。一般当slave第一次启动连接master，或者认为是第一次连接，就采用<strong>全量复制</strong>，全量复制流程如下：</p>
+<ol>
+<li>slave发送sync命令到master。</li>
+<li>master接收到SYNC命令后，执行bgsave命令，生成RDB全量文件。</li>
+<li>master使用缓冲区，记录RDB快照生成期间的所有写命令。</li>
+<li>master执行完bgsave后，向所有slave发送RDB快照文件。</li>
+<li>slave收到RDB快照文件后，载入、解析收到的快照。</li>
+<li>master使用缓冲区，记录RDB同步期间生成的所有写的命令。</li>
+<li>master快照发送完毕后，开始向slave发送缓冲区中的写命令;</li>
+<li>salve接受命令请求，并执行来自master缓冲区的写命令</li>
+</ol>
+<p>redis2.8版本之后，已经使用<strong>psync来替代sync</strong>，因为sync命令非常消耗系统资源，psync的效率更高。</p>
+<p>slave与master全量同步之后，master上的数据，如果再次发生更新，就会触发<strong>增量复制</strong>。</p>
+<p>当master节点发生数据增减时，就会触发replicationFeedSalves()函数，接下来在 Master节点上调用的每一个命令会使用replicationFeedSlaves()来同步到Slave节点。执行此函数之前呢，master节点会判断用户执行的命令是否有数据更新，如果有数据更新的话，并且slave节点不为空，就会执行此函数。这个函数作用就是：<strong>把用户执行的命令发送到所有的slave节点</strong>，让slave节点执行。</p>
+<h4 id="4-2-Redis哨兵"><a href="#4-2-Redis哨兵" class="headerlink" title="4.2 Redis哨兵"></a>4.2 Redis哨兵</h4><p>主从模式中，一旦主节点由于故障不能提供服务，需要人工将从节点晋升为主节点，同时还要通知应用方更新主节点地址。显然，多数业务场景都不能接受这种故障处理方式。Redis从2.8开始正式提供了Redis Sentinel（哨兵）架构来解决这个问题。</p>
+<p><strong>哨兵模式</strong>，由一个或多个Sentinel实例组成的Sentinel系统，它可以监视所有的Redis主节点和从节点，并在被监视的主节点进入下线状态时，<strong>自动将下线主服务器属下的某个从节点升级为新的主节点</strong>。但是呢，一个哨兵进程对Redis节点进行监控，就可能会出现问题（<strong>单点问题</strong>），因此，可以使用多个哨兵来进行监控Redis节点，并且各个哨兵之间还会进行监控。</p>
+<p>简单来说，哨兵模式就三个作用：</p>
+<ul>
+<li>发送命令，等待Redis服务器（包括主服务器和从服务器）返回监控其运行状态；</li>
+<li>哨兵监测到主节点宕机，会自动将从节点切换成主节点，然后通过发布订阅模式通知其他的从节点，修改配置文件，让它们切换主机；</li>
+<li>哨兵之间还会相互监控，从而达到高可用。</li>
+</ul>
+<p>故障切换的过程：</p>
+<p>假设主服务器宕机，哨兵1先检测到这个结果，系统并不会马上进行 failover 过程，仅仅是哨兵1主观的认为主服务器不可用，这个现象成为主观下线。当后面的哨兵也检测到主服务器不可用，并且数量达到一定值时，那么哨兵之间就会进行一次投票，投票的结果由一个哨兵发起，进行 failover 操作。切换成功后，就会通过发布订阅模式，让各个哨兵把自己监控的从服务器实现切换主机，这个过程称为客观下线。这样对于客户端而言，一切都是透明的。</p>
+<p>哨兵的工作模式如下：</p>
+<ol>
+<li>每个Sentinel以每秒钟一次的频率向它所知的Master，Slave以及其他Sentinel实例发送一个 PING命令。</li>
+<li>如果一个实例（instance）距离最后一次有效回复 PING 命令的时间超过 down-after-milliseconds 选项所指定的值， 则这个实例会被 Sentinel标记为主观下线。</li>
+<li>如果一个Master被标记为主观下线，则正在监视这个Master的所有 Sentinel 要以每秒一次的频率确认Master的确进入了主观下线状态。</li>
+<li>当有足够数量的 Sentinel（大于等于配置文件指定的值）在指定的时间范围内确认Master的确进入了主观下线状态， 则Master会被标记为客观下线。</li>
+<li>在一般情况下， 每个 Sentinel 会以每10秒一次的频率向它已知的所有Master，Slave发送 INFO 命令。</li>
+<li>当Master被 Sentinel 标记为客观下线时，Sentinel 向下线的 Master 的所有 Slave 发送 INFO 命令的频率会从 10 秒一次改为每秒一次</li>
+<li>若没有足够数量的 Sentinel同意Master已经下线， Master的客观下线状态就会被移除；若Master 重新向 Sentinel 的 PING 命令返回有效回复， Master 的主观下线状态就会被移除。</li>
+</ol>
+<h3 id="五、Redis-Cluster"><a href="#五、Redis-Cluster" class="headerlink" title="五、Redis Cluster"></a>五、Redis Cluster</h3><p>哨兵模式基于主从模式，实现读写分离，它还可以自动切换，系统可用性更高。但是它每个节点存储的数据是一样的，浪费内存，并且不好在线扩容。因此，Cluster集群应运而生，它在Redis3.0加入的，实现了Redis的<strong>分布式存储</strong>。对数据进行分片，也就是说<strong>每台Redis节点上存储不同的内容</strong>，来解决在线扩容的问题。并且，它也提供复制和故障转移的功能。</p>
+<h4 id="5-1-Cluster之间的通信"><a href="#5-1-Cluster之间的通信" class="headerlink" title="5.1 Cluster之间的通信"></a>5.1 Cluster之间的通信</h4><p>一个Redis集群由多个节点组成，<strong>各个节点之间是怎么通信的呢</strong>？通过<strong>Gossip协议</strong>！</p>
+<p>Redis Cluster集群通过Gossip协议进行通信，节点之前不断交换信息，交换的信息内容包括节点出现故障、新节点加入、主从节点变更信息、slot信息等等。常用的Gossip消息分为4种，分别是：ping、pong、meet、fail。</p>
+<blockquote>
+<ul>
+<li>meet消息：通知新节点加入。消息发送者通知接收者加入到当前集群，meet消息通信正常完成后，接收节点会加入到集群中并进行周期性的ping、pong消息交换。</li>
+<li>ping消息：集群内交换最频繁的消息，集群内每个节点每秒向多个其他节点发送ping消息，用于检测节点是否在线和交换彼此状态信息。</li>
+<li>pong消息：当接收到ping、meet消息时，作为响应消息回复给发送方确认消息正常通信。pong消息内部封装了自身状态数据。节点也可以向集群内广播自身的pong消息来通知整个集群对自身状态进行更新。</li>
+<li>fail消息：当节点判定集群内另一个节点下线时，会向集群内广播一个fail消息，其他节点接收到fail消息之后把对应节点更新为下线状态。</li>
+</ul>
+</blockquote>
+<p>特别的，每个节点是通过<strong>集群总线(cluster bus)</strong> 与其他的节点进行通信的。通讯时，使用特殊的端口号，即对外服务端口号加10000。例如如果某个node的端口号是6379，那么它与其它nodes通信的端口号是 16379。nodes 之间的通信采用特殊的二进制协议。</p>
+<h4 id="5-2-Hash-Slot插槽算法"><a href="#5-2-Hash-Slot插槽算法" class="headerlink" title="5.2 Hash Slot插槽算法"></a>5.2 Hash Slot插槽算法</h4><p>既然是分布式存储，Cluster集群使用的分布式算法是<strong>一致性Hash</strong>嘛？并不是，而是<strong>Hash Slot插槽算法</strong>。</p>
+<p><strong>插槽算法</strong>把整个数据库被分为16384个slot（槽），每个进入Redis的键值对，根据key进行散列，分配到这16384插槽中的一个。使用的哈希映射也比较简单，用CRC16算法计算出一个16 位的值，再对16384取模。数据库中的每个键都属于这16384个槽的其中一个，集群中的每个节点都可以处理这16384个槽。</p>
+<p>集群中的每个节点负责一部分的hash槽，比如当前集群有A、B、C个节点，每个节点上的哈希槽数 =16384/3，那么就有：</p>
+<ul>
+<li>节点A负责0~5460号哈希槽</li>
+<li>节点B负责5461~10922号哈希槽</li>
+<li>节点C负责10923~16383号哈希槽</li>
+</ul>
+<h4 id="5-3-Redis-Cluster集群"><a href="#5-3-Redis-Cluster集群" class="headerlink" title="5.3 Redis Cluster集群"></a>5.3 Redis Cluster集群</h4><p>Redis Cluster集群中，需要确保16384个槽对应的node都正常工作，如果某个node出现故障，它负责的slot也会失效，整个集群将不能工作。</p>
+<p>因此为了保证高可用，Cluster集群引入了主从复制，一个主节点对应一个或者多个从节点。当其它主节点 ping 一个主节点 A 时，如果半数以上的主节点与 A 通信超时，那么认为主节点 A 宕机了。如果主节点宕机时，就会启用从节点。</p>
+<p>在Redis的每一个节点上，都有两个玩意，一个是插槽（slot），它的取值范围是0~16383。另外一个是cluster，可以理解为一个集群管理的插件。当我们存取的key到达时，Redis 会根据CRC16算法得出一个16 bit的值，然后把结果对16384取模。酱紫每个key都会对应一个编号在 0~16383 之间的哈希槽，通过这个值，去找到对应的插槽所对应的节点，然后直接自动跳转到这个对应的节点上进行存取操作。</p>
+<p>虽然数据是分开存储在不同节点上的，但是对客户端来说，整个集群Cluster，被看做一个整体。客户端端连接任意一个node，看起来跟操作单实例的Redis一样。当客户端操作的key没有被分配到正确的node节点时，Redis会返回转向指令，最后指向正确的node，这就有点像浏览器页面的302 重定向跳转</p>
+<h4 id="5-4-故障转移"><a href="#5-4-故障转移" class="headerlink" title="5.4 故障转移"></a>5.4 故障转移</h4><p>Redis集群实现了高可用，当集群内节点出现故障时，通过<strong>故障转移</strong>，以保证集群正常对外提供服务。</p>
+<p>redis集群通过ping/pong消息，实现故障发现。这个环境包括<strong>主观下线和客观下线</strong>。</p>
+<p><strong>主观下线：</strong> 某个节点认为另一个节点不可用，即下线状态，这个状态并不是最终的故障判定，只能代表一个节点的意见，可能存在误判情况。</p>
+<p><strong>客观下线：</strong> 指标记一个节点真正的下线，集群内多个节点都认为该节点不可用，从而达成共识的结果。如果是持有槽的主节点故障，需要为该节点进行故障转移。</p>
+<ul>
+<li>假如节点A标记节点B为主观下线，一段时间后，节点A通过消息把节点B的状态发到其它节点，当节点C接受到消息并解析出消息体时，如果发现节点B的pfail状态时，会触发客观下线流程；</li>
+<li>当下线为主节点时，此时Redis Cluster集群为统计持有槽的主节点投票，看投票数是否达到一半，当下线报告统计数大于一半时，被标记为<strong>客观下线</strong>状态。</li>
+</ul>
+<p><strong>故障恢复</strong>：故障发现后，如果下线节点的是主节点，则需要在它的从节点中选一个替换它，以保证集群的高可用。流程如下：</p>
+<ul>
+<li>资格检查：检查从节点是否具备替换故障主节点的条件。</li>
+<li>准备选举时间：资格检查通过后，更新触发故障选举时间。</li>
+<li>发起选举：到了故障选举时间，进行选举。</li>
+<li>选举投票：只有持有槽的<strong>主节点</strong>才有票，从节点收集到足够的选票（大于一半），触发<strong>替换主节点操作</strong></li>
+</ul>
+<h3 id="六、分布式锁"><a href="#六、分布式锁" class="headerlink" title="六、分布式锁"></a>六、分布式锁</h3><p>分布式锁里面细节挺多的，我用商品抢购，库存扣减例子，来演示一下各种方案可能出现的问题，以及相应的解决方案。</p>
+<h4 id="6-1-当不使用分布式锁的时候"><a href="#6-1-当不使用分布式锁的时候" class="headerlink" title="6.1 当不使用分布式锁的时候"></a>6.1 当不使用分布式锁的时候</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Autowired</span></span><br><span class="line">  <span class="keyword">private</span> StringRedisTemplate redisTemplate;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 假设这次卖的是Iphone13</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String STOCK_KEY = <span class="string">"stock:iphone13"</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 分布式锁</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String STOCK_IPHONE_LOCK = <span class="string">"stock:iphone13:lock"</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 当前版本的库存扣减，如果是单实例，是可以的</span></span><br><span class="line"><span class="comment">   * 但是目前基本都是k8s多实例部署，如果使用这种代码，在并发比较高的时候，</span></span><br><span class="line"><span class="comment">   * 多个实例可能同时执行到进入锁后，拿到key的值是相同的</span></span><br><span class="line"><span class="comment">   * 这个时候可能就会出现重复扣减的问题，会出现严重的不一致问题，体现在业务场景，也就是超卖了</span></span><br><span class="line"><span class="comment">   *</span></span><br><span class="line"><span class="comment">   * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="meta">@PostMapping</span>(<span class="string">"v1/deductStock"</span>)</span><br><span class="line">  <span class="function"><span class="keyword">public</span> String <span class="title">deductStockV1</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      <span class="keyword">synchronized</span> (<span class="keyword">this</span>) &#123;</span><br><span class="line">          String stockValue = redisTemplate.opsForValue().get(STOCK_KEY);</span><br><span class="line">          <span class="keyword">if</span> (Objects.nonNull(stockValue)) &#123;</span><br><span class="line">              <span class="comment">//获取当前库存</span></span><br><span class="line">              <span class="keyword">int</span> stock = Integer.parseInt(stockValue);</span><br><span class="line">              <span class="keyword">if</span> (stock &gt; <span class="number">0</span>) &#123;</span><br><span class="line">                  stock--;</span><br><span class="line">                  redisTemplate.opsForValue().set(STOCK_KEY, String.valueOf(stock));</span><br><span class="line">                  System.out.println(<span class="string">"deduct stock success"</span>);</span><br><span class="line">              &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                  System.out.println(<span class="string">"deduct stock fail"</span>);</span><br><span class="line">              &#125;</span><br><span class="line">          &#125;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">return</span> <span class="string">"ok"</span>;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<h4 id="6-2-setNx命令"><a href="#6-2-setNx命令" class="headerlink" title="6.2 setNx命令"></a>6.2 setNx命令</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 这个版本的库存扣减，可以保证在多实例的情况下，库存不会出现超卖的问题了，但是还是会有问题</span></span><br><span class="line"><span class="comment">   * 考虑这种场景：拿到了这把锁之后，如果系统发生了crash，没有执行到finally的代码，那么这把锁就永远留在了redis里面</span></span><br><span class="line"><span class="comment">   * 那后续所有的线程都无法获取到锁，进行库存的扣减了</span></span><br><span class="line"><span class="comment">   *</span></span><br><span class="line"><span class="comment">   * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="meta">@PostMapping</span>(<span class="string">"v2/deductStock"</span>)</span><br><span class="line">  <span class="function"><span class="keyword">public</span> String <span class="title">deductStockV2</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      <span class="keyword">try</span> &#123;</span><br><span class="line">          <span class="comment">//试图加锁, setIfAbsent就是 setNx命令，这是RedisTemplate的api，如果使用jedis，就直接是调用setNx命令</span></span><br><span class="line">          Boolean lockSuccess = redisTemplate.opsForValue().setIfAbsent(STOCK_IPHONE_LOCK, <span class="string">"HAHA，I GET THIS LOCK"</span>);</span><br><span class="line">          <span class="keyword">if</span> (!lockSuccess) &#123;</span><br><span class="line">              <span class="keyword">return</span> <span class="string">"没有抢到商品，请稍后重试"</span>;</span><br><span class="line">          &#125;</span><br><span class="line">          String stockValue = redisTemplate.opsForValue().get(STOCK_KEY);</span><br><span class="line">          <span class="keyword">if</span> (Objects.nonNull(stockValue)) &#123;</span><br><span class="line">              <span class="comment">//获取当前库存</span></span><br><span class="line">              <span class="keyword">int</span> stock = Integer.parseInt(stockValue);</span><br><span class="line">              <span class="keyword">if</span> (stock &gt; <span class="number">0</span>) &#123;</span><br><span class="line">                  stock--;</span><br><span class="line">                  redisTemplate.opsForValue().set(STOCK_KEY, String.valueOf(stock));</span><br><span class="line">                  System.out.println(<span class="string">"deduct stock success"</span>);</span><br><span class="line">              &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                  System.out.println(<span class="string">"deduct stock fail"</span>);</span><br><span class="line">              &#125;</span><br><span class="line">          &#125;</span><br><span class="line">      &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">          <span class="comment">//扣减库存成功后，需要删除掉这把锁</span></span><br><span class="line">          redisTemplate.delete(STOCK_IPHONE_LOCK);</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">return</span> <span class="string">"ok"</span>;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<h4 id="6-3-setEx命令"><a href="#6-3-setEx命令" class="headerlink" title="6.3 setEx命令"></a>6.3 setEx命令</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 为了解决V2版本的分布式锁出现的问题，我们可以考虑使用Redis的setNxEx命令</span></span><br><span class="line"><span class="comment">   * 就是这个key多久之后自动过期，这样即使没有执行到delete发生了crash，这个key过一段时间后，还是会自动过期的</span></span><br><span class="line"><span class="comment">   * but 虽然解决了key一直存在的问题，但这个方法其实还是有问题的。</span></span><br><span class="line"><span class="comment">   * 想象一下这种场景：如果加完锁后，接来下的代码执行时间过长，导致还没有执行到del语句，这个key就过期了呢，这就会很危险了</span></span><br><span class="line"><span class="comment">   * 在线程很多的时候，这个锁基本就等于失效了</span></span><br><span class="line"><span class="comment">   *</span></span><br><span class="line"><span class="comment">   * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="meta">@PostMapping</span>(<span class="string">"v3/deductStock"</span>)</span><br><span class="line">  <span class="function"><span class="keyword">public</span> String <span class="title">deductStockV3</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      <span class="keyword">try</span> &#123;</span><br><span class="line">          <span class="comment">//试图加锁</span></span><br><span class="line">          Boolean lockSuccess = redisTemplate.opsForValue().setIfAbsent(STOCK_IPHONE_LOCK, <span class="string">"HAHA，I GET THIS LOCK"</span>, <span class="number">10</span>, TimeUnit.SECONDS);</span><br><span class="line">          <span class="keyword">if</span> (Boolean.FALSE.equals(lockSuccess)) &#123;</span><br><span class="line">              <span class="keyword">return</span> <span class="string">"没有抢到商品，请稍后重试"</span>;</span><br><span class="line">          &#125;</span><br><span class="line">          String stockValue = redisTemplate.opsForValue().get(STOCK_KEY);</span><br><span class="line">          <span class="keyword">if</span> (Objects.nonNull(stockValue)) &#123;</span><br><span class="line">              <span class="comment">//获取当前库存</span></span><br><span class="line">              <span class="keyword">int</span> stock = Integer.parseInt(stockValue);</span><br><span class="line">              <span class="keyword">if</span> (stock &gt; <span class="number">0</span>) &#123;</span><br><span class="line">                  stock--;</span><br><span class="line">                  redisTemplate.opsForValue().set(STOCK_KEY, String.valueOf(stock));</span><br><span class="line">                  System.out.println(<span class="string">"deduct stock success"</span>);</span><br><span class="line">              &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                  System.out.println(<span class="string">"deduct stock fail"</span>);</span><br><span class="line">              &#125;</span><br><span class="line">          &#125;</span><br><span class="line">      &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">          <span class="comment">//扣减库存成功后，需要删除掉这把锁</span></span><br><span class="line">          redisTemplate.delete(STOCK_IPHONE_LOCK);</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">return</span> <span class="string">"ok"</span>;</span><br><span class="line"></span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<h4 id="6-4-Redisson机制"><a href="#6-4-Redisson机制" class="headerlink" title="6.4 Redisson机制"></a>6.4 Redisson机制</h4><p>Redisson的具体Api，可以参照<a href="https://github.com/redisson/redisson/wiki/8.-distributed-locks-and-synchronizers" target="_blank" rel="noopener">官方示例</a>来写,本身的原理，网上也有很多相关的示例图，可以看下图:</p>
+<p><img src="https://github.com/yaowenxi/myImage/raw/master/redis/redisson.png" alt="redisson"></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 这个版本的分布式锁，引入了redisson进行分布式锁</span></span><br><span class="line"><span class="comment">   * 这个分布式锁，他的原理在于加锁的同时，起了一个新的线程，定时的去对这个锁进行观察，如果发现他仍在运行，就将这个锁的超时时间进行续约</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="meta">@PostMapping</span>(<span class="string">"v4/deductStock"</span>)</span><br><span class="line">  <span class="function"><span class="keyword">public</span> String <span class="title">deductStockV4</span><span class="params">()</span> <span class="keyword">throws</span> InterruptedException </span>&#123;</span><br><span class="line">      <span class="comment">//RedissonClient演示做的临时创建，实际使用的时候，将他做成Java Bean注入进来</span></span><br><span class="line">      Config config = <span class="keyword">new</span> Config();</span><br><span class="line">      config.useSingleServer()</span><br><span class="line">              .setAddress(<span class="string">"redis://127.0.0.1:6379"</span>);</span><br><span class="line">      RedissonClient client = Redisson.create(config);</span><br><span class="line">      RLock lock = client.getLock(STOCK_IPHONE_LOCK);</span><br><span class="line">      <span class="comment">//这里使用了redssion的相关锁，他本身会启动一个watchDog看门狗的机制，当锁中的代码没有执行完时，自动对锁续约</span></span><br><span class="line">      <span class="keyword">boolean</span> res = lock.tryLock(<span class="number">100</span>, <span class="number">10</span>, TimeUnit.SECONDS);</span><br><span class="line">      <span class="keyword">if</span> (res) &#123;</span><br><span class="line">          <span class="keyword">try</span> &#123;</span><br><span class="line">              String stockValue = redisTemplate.opsForValue().get(STOCK_KEY);</span><br><span class="line">              <span class="keyword">if</span> (Objects.nonNull(stockValue)) &#123;</span><br><span class="line">                  <span class="comment">//获取当前库存</span></span><br><span class="line">                  <span class="keyword">int</span> stock = Integer.parseInt(stockValue);</span><br><span class="line">                  <span class="keyword">if</span> (stock &gt; <span class="number">0</span>) &#123;</span><br><span class="line">                      stock--;</span><br><span class="line">                      redisTemplate.opsForValue().set(STOCK_KEY, String.valueOf(stock));</span><br><span class="line">                      System.out.println(<span class="string">"deduct stock success"</span>);</span><br><span class="line">                  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                      System.out.println(<span class="string">"deduct stock fail"</span>);</span><br><span class="line">                  &#125;</span><br><span class="line">              &#125;</span><br><span class="line">          &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">              lock.unlock();</span><br><span class="line">          &#125;</span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">          System.out.println(<span class="string">"没有争抢到锁，直接返回"</span>);</span><br><span class="line">          <span class="keyword">return</span> <span class="string">"请稍后重试"</span>;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">return</span> <span class="string">"ok"</span>;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<h4 id="6-4-RedLock-Redisson"><a href="#6-4-RedLock-Redisson" class="headerlink" title="6.4 RedLock+Redisson"></a>6.4 RedLock+Redisson</h4><p>如果去问面试八股文，还会有人会提到Redlock，这个东西我是这样理解的，Redis官方提出了一种叫做redlock的分布式锁算法，redlock主要解决的是在多实例分布下实例failover的情况下，锁的可用性问题，每种语言都可以基于这种规范去实现自己语言的加锁方式，而在Java中，redisson实现了这个思路，但是，我去翻最新的<a href="https://github.com/redisson/redisson/wiki/8.-Distributed-locks-and-synchronizers#84-redlock" target="_blank" rel="noopener">文档</a>，他是这样说的：</p>
+<blockquote>
+<p>8.4. RedLock</p>
+<p><em>This object is deprecated. RLock operations now propagated to all Redis slaves.</em></p>
+</blockquote>
+<p>所以说八股文还是会有一定的落后性 ：）</p>
+<p>当然Redlock算法本身我们还是需要了解的，这里给出解释。而在日常使用Java中加锁，我个人理解Redisson是可以满足需求的。</p>
+<p><a href="https://redis.io/docs/reference/patterns/distributed-locks/#the-redlock-algorithm" target="_blank" rel="noopener">Redlock</a>的核心思想在于：</p>
+<blockquote>
+<p>In the distributed version of the algorithm we assume we have N Redis masters. Those nodes are totally independent, so we don’t use replication or any other implicit coordination system. We already described how to acquire and release the lock safely in a single instance. We take for granted that the algorithm will use this method to acquire and release the lock in a single instance. In our examples we set N=5, which is a reasonable value, so we need to run 5 Redis masters on different computers or virtual machines in order to ensure that they’ll fail in a mostly independent way.</p>
+<p>In order to acquire the lock, the client performs the following operations:</p>
+<ol>
+<li>It gets the current time in milliseconds.</li>
+<li>It tries to acquire the lock in all the N instances sequentially, using the same key name and random value in all the instances. During step 2, when setting the lock in each instance, the client uses a timeout which is small compared to the total lock auto-release time in order to acquire it. For example if the auto-release time is 10 seconds, the timeout could be in the ~ 5-50 milliseconds range. This prevents the client from remaining blocked for a long time trying to talk with a Redis node which is down: if an instance is not available, we should try to talk with the next instance ASAP.</li>
+<li>The client computes how much time elapsed in order to acquire the lock, by subtracting from the current time the timestamp obtained in step 1. If and only if the client was able to acquire the lock in the majority of the instances (at least 3), and the total time elapsed to acquire the lock is less than lock validity time, the lock is considered to be acquired.</li>
+<li>If the lock was acquired, its validity time is considered to be the initial validity time minus the time elapsed, as computed in step 3.</li>
+<li>If the client failed to acquire the lock for some reason (either it was not able to lock N/2+1 instances or the validity time is negative), it will try to unlock all the instances (even the instances it believed it was not able to lock).</li>
+</ol>
+</blockquote>
+<p>中文翻译一下：</p>
+<ul>
+<li>获取当前时间，以毫秒为单位。</li>
+<li>按顺序向5个master节点请求加锁。客户端设置网络连接和响应超时时间，并且超时时间要小于锁的失效时间。（假设锁自动失效时间为10秒，则超时时间一般在5-50毫秒之间,我们就假设超时时间是50ms吧）。如果超时，跳过该master节点，尽快去尝试下一个master节点。</li>
+<li>客户端使用当前时间减去开始获取锁时间（即步骤1记录的时间），得到获取锁使用的时间。当且仅当超过一半（N/2+1，这里是5/2+1=3个节点）的Redis master节点都获得锁，并且使用的时间小于锁失效时间时，锁才算获取成功。（如上图，10s&gt; 30ms+40ms+50ms+4m0s+50ms）</li>
+<li>如果取到了锁，key的真正有效时间就变啦，需要减去获取锁所使用的时间。</li>
+<li>如果获取锁失败（没有在至少N/2+1个master实例取到锁，有或者获取锁时间已经超过了有效时间），客户端要在所有的master节点上解锁（即便有些master节点根本就没有加锁成功，也需要解锁，以防止有些漏网之鱼）。</li>
+</ul>
+<p>简化下步骤就是：</p>
+<ul>
+<li>按顺序向5个master节点请求加锁</li>
+<li>根据设置的超时时间来判断，是不是要跳过该master节点。</li>
+<li>如果大于等于3个节点加锁成功，并且使用的时间小于锁的有效期，即可认定加锁成功啦。</li>
+<li>如果获取锁失败，解锁！</li>
+</ul>
+<h3 id="七、缓存与数据库一致性"><a href="#七、缓存与数据库一致性" class="headerlink" title="七、缓存与数据库一致性"></a>七、缓存与数据库一致性</h3><h3 id="八、缓存使用的各种问题"><a href="#八、缓存使用的各种问题" class="headerlink" title="八、缓存使用的各种问题"></a>八、缓存使用的各种问题</h3><h4 id="8-1-缓存击穿"><a href="#8-1-缓存击穿" class="headerlink" title="8.1 缓存击穿"></a>8.1 缓存击穿</h4><p><strong>缓存击穿：</strong> 指热点key在某个时间点过期的时候，而恰好在这个时间点对这个Key有大量的并发请求过来，从而大量的请求打到db。</p>
+<p>缓存击穿看着有点像，其实它两区别是，缓存雪崩是指数据库压力过大甚至down机，缓存击穿只是大量并发请求到了DB数据库层面。可以认为击穿是缓存雪崩的一个子集吧。有些文章认为它俩区别，是区别在于击穿针对某一热点key缓存，雪崩则是很多key。</p>
+<p>解决方案就有两种：</p>
+<ul>
+<li><strong>使用互斥锁方案</strong>。缓存失效时，不是立即去加载db数据，而是先使用某些带成功返回的原子操作命令，如(Redis的setnx）去操作，成功的时候，再去加载db数据库数据和设置缓存。否则就去重试获取缓存。</li>
+<li><strong>永不过期</strong>，是指没有设置过期时间，但是热点数据快要过期时，异步线程去更新和设置过期时间。</li>
+</ul>
+<h4 id="8-2-缓存穿透"><a href="#8-2-缓存穿透" class="headerlink" title="8.2 缓存穿透"></a>8.2 缓存穿透</h4><p><strong>缓存穿透</strong>：指查询一个一定不存在的数据，由于缓存是不命中时需要从数据库查询，查不到数据则不写入缓存，这将导致这个不存在的数据每次请求都要到数据库去查询，进而给数据库带来压力。</p>
+<blockquote>
+<p>通俗点说，读请求访问时，缓存和数据库都没有某个值，这样就会导致每次对这个值的查询请求都会穿透到数据库，这就是缓存穿透。</p>
+</blockquote>
+<p>缓存穿透一般都是这几种情况产生的：</p>
+<ul>
+<li><strong>业务不合理的设计</strong>，比如大多数用户都没开守护，但是你的每个请求都去缓存，查询某个userid查询有没有守护。</li>
+<li><strong>业务/运维/开发失误的操作</strong>，比如缓存和数据库的数据都被误删除了。</li>
+<li><strong>黑客非法请求攻击</strong>，比如黑客故意捏造大量非法请求，以读取不存在的业务数据。</li>
+</ul>
+<p><strong>如何避免缓存穿透呢？</strong> 一般有三种方法。</p>
+<ul>
+<li>如果是非法请求，我们在API入口，对参数进行校验，过滤非法值。</li>
+<li>如果查询数据库为空，我们可以给缓存设置个空值，或者默认值。但是如有有写请求进来的话，需要更新缓存哈，以保证缓存一致性，同时，最后给缓存设置适当的过期时间。（业务上比较常用，简单有效）</li>
+<li>使用布隆过滤器快速判断数据是否存在。即一个查询请求过来时，先通过布隆过滤器判断值是否存在，存在才继续往下查。</li>
+</ul>
+<blockquote>
+<p>布隆过滤器原理：它由初始值为0的位图数组和N个哈希函数组成。一个对一个key进行N个hash算法获取N个值，在比特数组中将这N个值散列后设定为1，然后查的时候如果特定的这几个位置都为1，那么布隆过滤器判断该key存在。</p>
+</blockquote>
+<h4 id="8-3-缓存雪崩"><a href="#8-3-缓存雪崩" class="headerlink" title="8.3 缓存雪崩"></a>8.3 缓存雪崩</h4><p><strong>缓存雪奔：</strong> 指缓存中数据大批量到过期时间，而查询数据量巨大，请求都直接访问数据库，引起数据库压力过大甚至down机。</p>
+<ul>
+<li>缓存雪奔一般是由于大量数据同时过期造成的，对于这个原因，可通过均匀设置过期时间解决，即让过期时间相对离散一点。如采用一个较大固定值+一个较小的随机值，5小时+0到1800秒。</li>
+<li>Redis 故障宕机也可能引起缓存雪崩。这就需要构造Redis高可用集群啦。</li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Redis/" rel="tag"># Redis</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2021/11/30/Spring知识点总结/" rel="next" title="Spring知识点总结">
+                <i class="fa fa-chevron-left"></i> Spring知识点总结
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+        <!-- JiaThis Button BEGIN -->
+<div class="jiathis_style">
+<span class="jiathis_txt">分享到：</span>
+<a class="jiathis_button_fav">收藏夹</a>
+<a class="jiathis_button_copy">复制网址</a>
+<a class="jiathis_button_email">邮件</a>
+<a class="jiathis_button_weixin">微信</a>
+<a class="jiathis_button_qzone">QQ空间</a>
+<a class="jiathis_button_tqq">腾讯微薄</a>
+<a class="jiathis_button_douban">豆瓣</a>
+<a class="jiathis_button_share">一键分享</a>
+
+<a href="http://www.jiathis.com/share?uid=2140465" class="jiathis jiathis_txt jiathis_separator jtico jtico_jiathis" target="_blank">更多</a>
+<a class="jiathis_counter_style"></a>
+</div>
+<script type="text/javascript">
+var jiathis_config={
+  data_track_clickback:true,
+  summary:"",
+  shortUrl:false,
+  hideMore:false
+}
+</script>
+<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js?uid=" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/images/avatar.jpg" alt="云之遥">
+          <p class="site-author-name" itemprop="name">云之遥</p>
+           
+              <p class="site-description motion-element" itemprop="description">天行健，君子以自强不息。</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">21</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">9</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">19</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/yaowenxi" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                    
+                      GitHub
+                    
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://www.zhihu.com/people/yun-zhi-yao-83" target="_blank" title="知乎">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                    
+                      知乎
+                    
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/u/5319379997" target="_blank" title="Weibo">
+                  
+                    <i class="fa fa-fw fa-weibo"></i>
+                  
+                    
+                      Weibo
+                    
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#一、数据结构"><span class="nav-text">一、数据结构</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-1-基础数据结构"><span class="nav-text">1.1 基础数据结构</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#1-1-1-String"><span class="nav-text">1.1.1 String</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#1-1-2-Hash"><span class="nav-text">1.1.2 Hash</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#1-1-3-List"><span class="nav-text">1.1.3 List</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#1-1-4-Set"><span class="nav-text">1.1.4 Set</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#1-1-5-SortedSort"><span class="nav-text">1.1.5 SortedSort</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#1-2-拓展数据结构"><span class="nav-text">1.2 拓展数据结构</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#1-2-1-Geospatial"><span class="nav-text">1.2.1 Geospatial</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#1-2-2-Hyperloglog"><span class="nav-text">1.2.2 Hyperloglog</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#1-2-3-Bitmap"><span class="nav-text">1.2.3 Bitmap</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#二、过期策略、内存淘汰机制"><span class="nav-text">二、过期策略、内存淘汰机制</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#2-1-过期策略"><span class="nav-text">2.1 过期策略</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#2-1-1-定时过期"><span class="nav-text">2.1.1 定时过期</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#2-1-2-惰性过期"><span class="nav-text">2.1.2 惰性过期</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#2-1-3-定期过期"><span class="nav-text">2.1.3 定期过期</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-2-内存淘汰机制"><span class="nav-text">2.2 内存淘汰机制</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#三、持久化机制"><span class="nav-text">三、持久化机制</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#3-1-RDB"><span class="nav-text">3.1 RDB</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#3-1-1-工作流程"><span class="nav-text">3.1.1 工作流程</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#3-1-2-优点"><span class="nav-text">3.1.2 优点</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#3-1-3-缺点"><span class="nav-text">3.1.3 缺点</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-2-AOF"><span class="nav-text">3.2 AOF</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#3-2-1-优点"><span class="nav-text">3.2.1 优点</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#3-2-2-缺点"><span class="nav-text">3.2.2 缺点</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-3-如何选择持久化"><span class="nav-text">3.3 如何选择持久化</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#四、Redis-主从"><span class="nav-text">四、Redis 主从</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#4-1-主从服务"><span class="nav-text">4.1 主从服务</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-2-Redis哨兵"><span class="nav-text">4.2 Redis哨兵</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#五、Redis-Cluster"><span class="nav-text">五、Redis Cluster</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#5-1-Cluster之间的通信"><span class="nav-text">5.1 Cluster之间的通信</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-2-Hash-Slot插槽算法"><span class="nav-text">5.2 Hash Slot插槽算法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-3-Redis-Cluster集群"><span class="nav-text">5.3 Redis Cluster集群</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-4-故障转移"><span class="nav-text">5.4 故障转移</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#六、分布式锁"><span class="nav-text">六、分布式锁</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#6-1-当不使用分布式锁的时候"><span class="nav-text">6.1 当不使用分布式锁的时候</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#6-2-setNx命令"><span class="nav-text">6.2 setNx命令</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#6-3-setEx命令"><span class="nav-text">6.3 setEx命令</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#6-4-Redisson机制"><span class="nav-text">6.4 Redisson机制</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#6-4-RedLock-Redisson"><span class="nav-text">6.4 RedLock+Redisson</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#七、缓存与数据库一致性"><span class="nav-text">七、缓存与数据库一致性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#八、缓存使用的各种问题"><span class="nav-text">八、缓存使用的各种问题</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#8-1-缓存击穿"><span class="nav-text">8.1 缓存击穿</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#8-2-缓存穿透"><span class="nav-text">8.2 缓存穿透</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#8-3-缓存雪崩"><span class="nav-text">8.3 缓存雪崩</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy;  2015 &mdash; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">云之遥</span>
+
+  
+</div>
+
+
+  <div class="powered-by">
+    由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+  </div>
+
+  <span class="post-meta-divider">|</span>
+
+  <div class="theme-info">
+    主题 &mdash;
+    <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+      NexT.Mist
+    </a>
+  </div>
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://worthyyao.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'http://yoursite.com/2022/04/07/Redis/';
+          this.page.identifier = '2022/04/07/Redis/';
+          this.page.title = 'Redis';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://worthyyao.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
